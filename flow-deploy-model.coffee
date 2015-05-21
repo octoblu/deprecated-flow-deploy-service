@@ -1,45 +1,41 @@
 _ = require 'lodash'
 request = require 'request'
+FlowConverterModel = require './flow-converter-model'
+MeshbluHttp = require 'meshblu-http'
 
 class FlowDeployModel
+  constructor: (@flowId, @meshbluConfig) ->
+
+  start: (callback=->) =>
+    @find @flowId, (flow) =>
+      @sendMessage flow, 'nodered-instance-start', callback
+
+  sendMessage: (flow, topic) =>
+    convertedFlow = @convertFlow flow
+    meshbluHttp = new MeshbluHttp @meshbluConfig
+    meshbluHttp.mydevices type: 'nodered-docker-manager', (data) ->
+      managerDevices = data.devices
+      devices = _.pluck managerDevices, 'uuid'
+      msg =
+        devices: devices
+        topic: topic
+        qos: 0
+
+      debug 'sendMessage.token', flow.token
+
+      msg.payload =
+        uuid: flow.flowId
+        token: flow.token
+        flow: convertedFlow
+
+      meshbluHttp.message msg
+
+  find: (flowId) =>
+    meshbluHttp = new MeshbluHttp @meshbluConfig
+    meshbluHttp.mydevices type: 'nodered-docker-manager', (data) ->
+
   convertFlow: (flow) =>
-    convertedNodes = _.map flow.nodes, (node) =>
-      @convertNode flow, node
-
-    convertedNodes.unshift
-      id: flow.flowId
-      label: flow.name
-      type: 'tab'
-      hash: flow.hash
-
-    convertedNodes
-
-  convertNode: (flow, node) =>
-    nodeLinks           = _.where flow.links, from: node.id
-    groupedLinks        = _.groupBy nodeLinks, 'fromPort'
-    largestPort         = @largestPortNumber groupedLinks
-
-    convertedNode = _.clone node
-    convertedNode.z = flow.flowId
-    convertedNode.hash = flow.hash
-    convertedNode.wires = @paddedArray largestPort
-    if convertedNode.category == 'operation'
-      convertedNode.type = convertedNode.type.replace 'operation:', ''
-    else
-      convertedNode.type = convertedNode.category
-
-    _.each groupedLinks, (links, fromPort) ->
-      port = parseInt fromPort
-      convertedNode.wires[port] = _.pluck links, 'to'
-
-    convertedNode
-
-  paddedArray: (length) =>
-    _.map _.range(length), -> []
-
-  largestPortNumber: (groupedLinks) =>
-    portsKeys = _.keys groupedLinks
-    _.max _.map portsKeys, (portKey) ->
-      parseInt portKey
+    flowConverter = new FlowConverterModel flow
+    flowConverter.convert
 
 module.exports = FlowDeployModel
