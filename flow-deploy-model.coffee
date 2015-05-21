@@ -1,22 +1,18 @@
 _ = require 'lodash'
 request = require 'request'
 debug = require('debug')('flow-deploy-service:flow-deploy-model')
-FlowConverterModel = require './flow-converter-model'
 
 class FlowDeployModel
   constructor: (@flowId, @meshbluConfig, dependencies={}) ->
     @MeshbluHttp = dependencies.MeshbluHttp || require 'meshblu-http'
 
-  convertFlow: (flow) =>
-    flowConverter = new FlowConverterModel flow
-    flowConverter.convert
-
   find: (flowId, callback=->) =>
     meshbluHttp = new @MeshbluHttp @meshbluConfig
-    meshbluHttp.device flowId, callback
+    meshbluHttp.device flowId, (error, device) =>
+      return callback error if error?
+      callback null, device
 
   sendMessage: (flow, topic, callback=->) =>
-    convertedFlow = @convertFlow flow
     meshbluHttp = new @MeshbluHttp @meshbluConfig
     meshbluHttp.mydevices type: 'nodered-docker-manager', (error, devices) ->
       msg =
@@ -30,7 +26,6 @@ class FlowDeployModel
         uuid: flow.flowId
         token: flow.token
         image: 'octoblu/flow-runner:latest'
-        flow: convertedFlow
 
       meshbluHttp.message msg, (error) =>
         callback error
@@ -38,13 +33,13 @@ class FlowDeployModel
   start: (callback=->) =>
     @find @flowId, (error, flow) =>
       return callback error if error?
-      @sendMessage flow, 'nodered-instance-start', ->
-        callback()
+      @sendMessage flow, 'nodered-instance-start', (error) ->
+        callback error
 
   stop: (callback=->) =>
     @find @flowId, (error, flow) =>
       return callback error if error?
-      @sendMessage flow, 'nodered-instance-stop', ->
-        callback()
+      @sendMessage flow, 'nodered-instance-stop', (error) ->
+        callback error
 
 module.exports = FlowDeployModel

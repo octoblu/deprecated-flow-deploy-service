@@ -6,6 +6,7 @@ describe 'FlowDeployModel', ->
     @meshbluHttp =
       mydevices: sinon.stub()
       message: sinon.stub()
+      device: sinon.stub()
 
     MeshbluHttp = =>
       @meshbluHttp
@@ -68,17 +69,20 @@ describe 'FlowDeployModel', ->
       it 'should not have an error', ->
         expect(@error).not.to.be
 
+  describe '.find', ->
+    beforeEach (done) ->
+      @meshbluHttp.device.yields null, uuid: 'honey-bunny'
+      @sut.find 21352135, (@error, @device) => done()
+
+    it 'should find the flow', ->
+      expect(@device).to.deep.equal uuid: 'honey-bunny'
+
   describe '.sendMessage', ->
     beforeEach ->
       @flow = flowId: 'big-daddy', token: 'tolking'
-      @sut.convertFlow = sinon.stub().returns
-        totally: 'converted'
       @meshbluHttp.mydevices.yields null, [uuid: 'honey-bear']
       @meshbluHttp.message.yields null
       @sut.sendMessage @flow, 'test'
-
-    it 'should convert the flow', ->
-      expect(@sut.convertFlow).to.have.been.calledWith @flow
 
     it 'should call mydevices', ->
       expect(@meshbluHttp.mydevices).to.have.been.calledWith type: 'nodered-docker-manager'
@@ -87,8 +91,6 @@ describe 'FlowDeployModel', ->
       expect(@meshbluHttp.message).to.have.been.calledWith
         devices: ['honey-bear']
         payload:
-          flow:
-            totally: 'converted'
           image: 'octoblu/flow-runner:latest'
           token: 'tolking'
           uuid: 'big-daddy'
