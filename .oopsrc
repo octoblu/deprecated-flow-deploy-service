@@ -1,0 +1,6 @@
+{
+  "elb-name": "flow-deploy-octoblu-com",
+  "application-name": "flow-deploy-service",
+  "deployment-group": "master",
+  "s3-bucket": "octoblu-deploy"
+}
