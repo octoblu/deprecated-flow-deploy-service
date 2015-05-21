@@ -1,24 +1,26 @@
 _ = require 'lodash'
 request = require 'request'
+debug = require('debug')('flow-deploy-service:flow-deploy-model')
 FlowConverterModel = require './flow-converter-model'
 
 class FlowDeployModel
   constructor: (@flowId, @meshbluConfig, dependencies={}) ->
     @MeshbluHttp = dependencies.MeshbluHttp || require 'meshblu-http'
 
-  start: (callback=->) =>
-    @find @flowId, (error, flow) =>
-      callback error if error?
-      @sendMessage flow, 'nodered-instance-start', callback
+  convertFlow: (flow) =>
+    flowConverter = new FlowConverterModel flow
+    flowConverter.convert
 
-  sendMessage: (flow, topic) =>
+  find: (flowId, callback=->) =>
+    meshbluHttp = new @MeshbluHttp @meshbluConfig
+    meshbluHttp.device flowId, callback
+
+  sendMessage: (flow, topic, callback=->) =>
     convertedFlow = @convertFlow flow
     meshbluHttp = new @MeshbluHttp @meshbluConfig
-    meshbluHttp.mydevices type: 'nodered-docker-manager', (data) ->
-      managerDevices = data.devices
-      devices = _.pluck managerDevices, 'uuid'
+    meshbluHttp.mydevices type: 'nodered-docker-manager', (error, devices) ->
       msg =
-        devices: devices
+        devices: _.pluck devices, 'uuid'
         topic: topic
         qos: 0
 
@@ -27,16 +29,22 @@ class FlowDeployModel
       msg.payload =
         uuid: flow.flowId
         token: flow.token
+        image: 'octoblu/flow-runner:latest'
         flow: convertedFlow
 
-      meshbluHttp.message msg
+      meshbluHttp.message msg, (error) =>
+        callback error
 
-  find: (flowId, callback=->) =>
-    meshbluHttp = new @MeshbluHttp @meshbluConfig
-    meshbluHttp.device flowId, callback
+  start: (callback=->) =>
+    @find @flowId, (error, flow) =>
+      return callback error if error?
+      @sendMessage flow, 'nodered-instance-start', ->
+        callback()
 
-  convertFlow: (flow) =>
-    flowConverter = new FlowConverterModel flow
-    flowConverter.convert
+  stop: (callback=->) =>
+    @find @flowId, (error, flow) =>
+      return callback error if error?
+      @sendMessage flow, 'nodered-instance-stop', ->
+        callback()
 
 module.exports = FlowDeployModel
