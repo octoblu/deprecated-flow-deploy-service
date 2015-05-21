@@ -3,7 +3,7 @@ FlowDeployModel = require './flow-deploy-model'
 _            = require 'lodash'
 debug        = require('debug')('flow-deploy-service:flow-deploy-controller')
 
-class TriggerController
+class FlowDeployController
   constructor: (@meshbluOptions={}) ->
 
   start: (request, response) =>
@@ -15,4 +15,4 @@ class TriggerController
       return response.status(500).end() if error?
       return response.status(201).json(body)
 
-module.exports = TriggerController
+module.exports = FlowDeployController
