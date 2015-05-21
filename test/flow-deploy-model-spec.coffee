@@ -11,7 +11,7 @@ describe 'FlowDeployModel', ->
     MeshbluHttp = =>
       @meshbluHttp
 
-    @sut = new FlowDeployModel @flowId, {}, MeshbluHttp: MeshbluHttp
+    @sut = new FlowDeployModel @flowId, {}, {}, MeshbluHttp: MeshbluHttp
 
   describe 'constructor', ->
     it 'should exist', ->
@@ -20,7 +20,7 @@ describe 'FlowDeployModel', ->
   describe '.start', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234, {}
+        @sut = new FlowDeployModel 1234, {}, {}
         @sut.find = sinon.stub().yields new Error
         @sut.start (@error) => done()
 
@@ -29,8 +29,9 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234, {}
+        @sut = new FlowDeployModel 1234, {}, {}
         @sut.find = sinon.stub().yields null, {}
+        @sut.resetToken = sinon.stub().yields null, 'token'
         @sut.sendMessage = sinon.stub().yields null
         @sut.start (@error) => done()
 
@@ -38,7 +39,7 @@ describe 'FlowDeployModel', ->
         expect(@sut.find).to.have.been.calledWith 1234
 
       it 'should have called sendMessage', ->
-        expect(@sut.sendMessage).to.have.been.calledWith {}
+        expect(@sut.sendMessage).to.have.been.calledWith {token: 'token'}
 
       it 'should not have an error', ->
         expect(@error).not.to.be
@@ -79,20 +80,19 @@ describe 'FlowDeployModel', ->
 
   describe '.sendMessage', ->
     beforeEach ->
-      @flow = flowId: 'big-daddy', token: 'tolking'
-      @meshbluHttp.mydevices.yields null, [uuid: 'honey-bear']
+      @flow = uuid: 'big-daddy', token: 'tolking'
+      @meshbluHttp.mydevices.yields null, devices: [uuid: 'honey-bear']
       @meshbluHttp.message.yields null
       @sut.sendMessage @flow, 'test'
 
     it 'should call mydevices', ->
-      expect(@meshbluHttp.mydevices).to.have.been.calledWith type: 'nodered-docker-manager'
+      expect(@meshbluHttp.mydevices).to.have.been.calledWith type: 'octoblu:octo-master'
 
     it 'should call message', ->
       expect(@meshbluHttp.message).to.have.been.calledWith
         devices: ['honey-bear']
+        topic: "test"
         payload:
           image: 'octoblu/flow-runner:latest'
           token: 'tolking'
           uuid: 'big-daddy'
-        qos: 0
-        topic: "test"

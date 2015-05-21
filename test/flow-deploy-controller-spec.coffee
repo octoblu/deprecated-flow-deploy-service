@@ -37,15 +37,15 @@ describe 'FlowDeployController', ->
         @flowDeployModel.start.yields new Error
         @response = {}
         @response.status = sinon.stub().returns @response
-        @response.end = sinon.spy => done()
+        @response.send = sinon.spy => done()
         request =
           params:
             flowId: 12345
 
         @sut.start request, @response
 
-      it 'should set status 500', ->
-        expect(@response.status).to.have.been.calledWith 500
+      it 'should set status 502', ->
+        expect(@response.status).to.have.been.calledWith 502
 
     describe 'when valid', ->
       beforeEach (done) ->
@@ -61,7 +61,6 @@ describe 'FlowDeployController', ->
 
       it 'should set status 201', ->
         expect(@response.status).to.have.been.calledWith 201
-
 
   describe 'stop', ->
     describe 'when unauthorized', ->
@@ -87,15 +86,15 @@ describe 'FlowDeployController', ->
         @flowDeployModel.stop.yields new Error
         @response = {}
         @response.status = sinon.stub().returns @response
-        @response.end = sinon.spy => done()
+        @response.send = sinon.spy => done()
         request =
           params:
             flowId: 12345
 
         @sut.stop request, @response
 
-      it 'should set status 500', ->
-        expect(@response.status).to.have.been.calledWith 500
+      it 'should set status 502', ->
+        expect(@response.status).to.have.been.calledWith 502
 
     describe 'when valid', ->
       beforeEach (done) ->
