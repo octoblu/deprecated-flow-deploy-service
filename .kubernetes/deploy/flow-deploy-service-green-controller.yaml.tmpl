@@ -23,4 +23,8 @@ desiredState:
             image: octoblu/flow-deploy-service:$SHORT_COMMIT
             ports:
               - containerPort: 80
-
+            env:
+              - name: FLOW_DEPLOY_SERVICE_UUID
+                value: $FLOW_DEPLOY_SERVICE_UUID
+              - name: FLOW_DEPLOY_SERVICE_TOKEN
+                value: $FLOW_DEPLOY_SERVICE_TOKEN
