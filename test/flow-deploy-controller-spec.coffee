@@ -108,5 +108,5 @@ describe 'FlowDeployController', ->
 
         @sut.stop request, @response
 
-      it 'should set status 201', ->
-        expect(@response.status).to.have.been.calledWith 201
+      it 'should set status 204', ->
+        expect(@response.status).to.have.been.calledWith 204
