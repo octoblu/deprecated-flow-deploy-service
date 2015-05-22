@@ -7,12 +7,14 @@ meshbluHealthcheck = require 'express-meshblu-healthcheck'
 FlowDeployController = require './flow-deploy-controller'
 cors = require 'cors'
 bodyParser = require 'body-parser'
+MeshbluConfig = require 'meshblu-config'
 
-MESHBLU_HOST          = process.env.MESHBLU_HOST || 'meshblu.octoblu.com'
-MESHBLU_PORT          = process.env.MESHBLU_PORT || '443'
+meshbluConfig = new MeshbluConfig(
+  uuid_env_name: 'FLOW_DEPLOY_SERVICE_UUID'
+  token_env_name: 'FLOW_DEPLOY_SERVICE_TOKEN'
+).toJSON()
+
 PORT  = process.env.FLOW_DEPLOY_SERVICE_PORT || 80
-UUID  = process.env.FLOW_DEPLOY_SERVICE_UUID
-TOKEN = process.env.FLOW_DEPLOY_SERVICE_TOKEN
 
 app = express()
 app.use cors()
@@ -23,18 +25,14 @@ app.use bodyParser.urlencoded limit: '50mb', extended : true
 app.use bodyParser.json limit : '50mb'
 
 meshbluOptions =
-  server: MESHBLU_HOST
-  port: MESHBLU_PORT
+  server: meshbluConfig.server
+  port: meshbluConfig.port
 
 app.use meshbluAuth meshbluOptions
 
 app.options '*', cors()
 
-flowDeployController = new FlowDeployController
-  server: MESHBLU_HOST
-  port: MESHBLU_PORT
-  uuid: UUID
-  token: TOKEN
+flowDeployController = new FlowDeployController meshbluConfig
 
 app.post '/flows/:flowId/instance', flowDeployController.start
 app.delete '/flows/:flowId/instance', flowDeployController.stop
