@@ -20,7 +20,7 @@ class FlowDeployModel
 
   sendMessage: (flow, topic, callback=->) =>
     meshbluHttp = new @MeshbluHttp @serviceMeshbluConfig
-    meshbluHttp.mydevices type: 'octoblu:octo-master', (error, data) =>
+    meshbluHttp.mydevices type: 'octoblu:octo-master', online: true, (error, data) =>
       return callback error if error?
       deviceId = _.sample _.pluck(data.devices, 'uuid')
       msg =

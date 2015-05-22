@@ -86,7 +86,7 @@ describe 'FlowDeployModel', ->
       @sut.sendMessage @flow, 'test'
 
     it 'should call mydevices', ->
-      expect(@meshbluHttp.mydevices).to.have.been.calledWith type: 'octoblu:octo-master'
+      expect(@meshbluHttp.mydevices).to.have.been.calledWith type: 'octoblu:octo-master', online: true
 
     it 'should call message', ->
       expect(@meshbluHttp.message).to.have.been.calledWith
