@@ -13,62 +13,44 @@ describe 'FlowDeployModel', ->
 
     @sut = new FlowDeployModel @flowId, {}, {}, MeshbluHttp: MeshbluHttp
 
-  describe 'constructor', ->
+  describe '->constructor', ->
     it 'should exist', ->
       expect(@sut).to.exist
 
-  describe '->start', ->
-    describe 'when find returns an error', ->
+  describe '->clearState', ->
+    beforeEach ->
+      @meshbluHttp.update = sinon.stub()
+
+    describe 'when called with a uuid', ->
+      beforeEach ->
+        @sut.clearState 'whatevs'
+
+      it 'should call meshbluHttp.update', ->
+        expect(@meshbluHttp.update).to.have.been.calledWith uuid: 'whatevs', states: null
+
+    describe 'when called with a different uuid', ->
+      beforeEach ->
+        @sut.clearState 'evswhat'
+
+      it 'should call meshbluHttp.update', ->
+        expect(@meshbluHttp.update).to.have.been.calledWith uuid: 'evswhat', states: null
+
+    describe 'when meshbluHttp.update yields an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234, {}, {}
-        @sut.find = sinon.stub().yields new Error
-        @sut.start (@error) => done()
+        @meshbluHttp.update.yields new Error('big badda boom')
+        @sut.clearState 'smoething', (@error) => done()
 
-      it 'should yield an error', ->
-        expect(@error).to.exist
+      it 'should call the callback with an error', ->
+        expect(@error).to.be.an.instanceOf Error
+        expect(@error.message).to.deep.equal 'big badda boom'
 
-    describe 'when find succeeds', ->
+    describe 'when meshbluHttp.update does not yield an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234, {}, {}
-        @sut.find = sinon.stub().yields null, {}
-        @sut.resetToken = sinon.stub().yields null, 'token'
-        @sut.sendMessage = sinon.stub().yields null
-        @sut.start (@error) => done()
+        @meshbluHttp.update.yields undefined
+        @sut.clearState 'smoething', (@error) => done()
 
-      it 'should have called find', ->
-        expect(@sut.find).to.have.been.calledWith 1234
-
-      it 'should have called sendMessage', ->
-        expect(@sut.sendMessage).to.have.been.calledWith {token: 'token'}
-
-      it 'should not have an error', ->
-        expect(@error).not.to.be
-
-  describe '->stop', ->
-    describe 'when find returns an error', ->
-      beforeEach (done) ->
-        @sut = new FlowDeployModel
-        @sut.find = sinon.stub().yields new Error
-        @sut.stop (@error) => done()
-
-      it 'should yield an error', ->
-        expect(@error).to.exist
-
-    describe 'when find succeeds', ->
-      beforeEach (done) ->
-        @sut = new FlowDeployModel 1234
-        @sut.find = sinon.stub().yields null, {}
-        @sut.sendMessage = sinon.stub().yields null
-        @sut.stop (@error) => done()
-
-      it 'should have called find', ->
-        expect(@sut.find).to.have.been.calledWith 1234
-
-      it 'should have called sendMessage', ->
-        expect(@sut.sendMessage).to.have.been.calledWith {}
-
-      it 'should not have an error', ->
-        expect(@error).not.to.be
+      it 'should call the callback without an error', ->
+        expect(@error).to.not.exist
 
   describe '->find', ->
     beforeEach (done) ->
@@ -77,25 +59,6 @@ describe 'FlowDeployModel', ->
 
     it 'should find the flow', ->
       expect(@device).to.deep.equal uuid: 'honey-bunny'
-
-  describe '->sendMessage', ->
-    beforeEach ->
-      @flow = uuid: 'big-daddy', token: 'tolking'
-      @meshbluHttp.mydevices.yields null, devices: [uuid: 'honey-bear']
-      @meshbluHttp.message.yields null
-      @sut.sendMessage @flow, 'test'
-
-    it 'should call mydevices', ->
-      expect(@meshbluHttp.mydevices).to.have.been.calledWith type: 'octoblu:octo-master', online: true
-
-    it 'should call message', ->
-      expect(@meshbluHttp.message).to.have.been.calledWith
-        devices: ['honey-bear']
-        topic: "test"
-        payload:
-          image: 'octoblu/flow-runner:latest'
-          token: 'tolking'
-          uuid: 'big-daddy'
 
   describe '->resetToken', ->
     describe 'when called with a uuid', ->
@@ -137,3 +100,95 @@ describe 'FlowDeployModel', ->
 
       it 'should call the callback with an empty error', ->
         expect(@error).to.not.exist
+
+  describe '->sendMessage', ->
+    beforeEach ->
+      @flow = uuid: 'big-daddy', token: 'tolking'
+      @meshbluHttp.mydevices.yields null, devices: [uuid: 'honey-bear']
+      @meshbluHttp.message.yields null
+      @sut.sendMessage @flow, 'test'
+
+    it 'should call mydevices', ->
+      expect(@meshbluHttp.mydevices).to.have.been.calledWith type: 'octoblu:octo-master', online: true
+
+    it 'should call message', ->
+      expect(@meshbluHttp.message).to.have.been.calledWith
+        devices: ['honey-bear']
+        topic: "test"
+        payload:
+          image: 'octoblu/flow-runner:latest'
+          token: 'tolking'
+          uuid: 'big-daddy'
+
+  describe '->start', ->
+    describe 'when find returns an error', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel 1234, {}, {}
+        @sut.find = sinon.stub().yields new Error
+        @sut.start (@error) => done()
+
+      it 'should yield an error', ->
+        expect(@error).to.exist
+
+    describe 'when find, resetToken, clearState, and sendMessage succeed', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel '1234', {}, {}
+        @sut.find = sinon.stub().yields null, {}
+        @sut.resetToken = sinon.stub().yields null, 'token'
+        @sut.clearState = sinon.stub().yields null
+        @sut.sendMessage = sinon.stub().yields null
+        @sut.start (@error) => done()
+
+      it 'should call find', ->
+        expect(@sut.find).to.have.been.calledWith '1234'
+
+      it 'should call resetToken with the uuid', ->
+        expect(@sut.resetToken).to.have.been.calledWith '1234'
+
+      it 'should call clearState with the uuid', ->
+        expect(@sut.clearState).to.have.been.called
+
+      it 'should call sendMessage', ->
+        expect(@sut.sendMessage).to.have.been.calledWith {token: 'token'}
+
+      it 'should not have an error', ->
+        expect(@error).not.to.be
+
+    describe 'when clearState yields an error', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel '1234', {}, {}
+        @sut.find = sinon.stub().yields null, {}
+        @sut.resetToken = sinon.stub().yields null, 'token'
+        @sut.clearState = sinon.stub().yields new Error('state is still opaque')
+        @sut.sendMessage = sinon.stub().yields new Error('should not be called')
+        @sut.start (@error) => done()
+
+      it 'should call the callback with the error', ->
+        expect(@error).to.be.an.instanceOf Error
+        expect(@error.message).to.deep.equal 'state is still opaque'
+
+  describe '->stop', ->
+    describe 'when find returns an error', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel
+        @sut.find = sinon.stub().yields new Error
+        @sut.stop (@error) => done()
+
+      it 'should yield an error', ->
+        expect(@error).to.exist
+
+    describe 'when find succeeds', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel 1234
+        @sut.find = sinon.stub().yields null, {}
+        @sut.sendMessage = sinon.stub().yields null
+        @sut.stop (@error) => done()
+
+      it 'should have called find', ->
+        expect(@sut.find).to.have.been.calledWith 1234
+
+      it 'should have called sendMessage', ->
+        expect(@sut.sendMessage).to.have.been.calledWith {}
+
+      it 'should not have an error', ->
+        expect(@error).not.to.be

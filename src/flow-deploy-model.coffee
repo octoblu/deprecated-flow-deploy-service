@@ -6,6 +6,10 @@ class FlowDeployModel
   constructor: (@flowId, @userMeshbluConfig, @serviceMeshbluConfig, dependencies={}) ->
     @MeshbluHttp = dependencies.MeshbluHttp || require 'meshblu-http'
 
+  clearState: (uuid, callback=->) =>
+    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
+    meshbluHttp.update states: null, uuid: uuid, callback
+
   find: (flowId, callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     meshbluHttp.device flowId, (error, device) =>
@@ -39,11 +43,16 @@ class FlowDeployModel
   start: (callback=->) =>
     @find @flowId, (error, flow) =>
       return callback error if error?
+
       @resetToken @flowId, (error, token) =>
         return callback error if error?
         flow.token = token
-        @sendMessage flow, 'create', (error) ->
-          callback error
+
+        @clearState (error) =>
+          return callback error if error?
+
+          @sendMessage flow, 'create', (error) ->
+            return callback error
 
   stop: (callback=->) =>
     @find @flowId, (error, flow) =>
