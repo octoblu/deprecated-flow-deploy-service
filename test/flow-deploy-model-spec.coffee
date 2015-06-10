@@ -1,4 +1,4 @@
-FlowDeployModel = require '../flow-deploy-model'
+FlowDeployModel = require '../src/flow-deploy-model'
 
 describe 'FlowDeployModel', ->
   beforeEach ->
@@ -17,7 +17,7 @@ describe 'FlowDeployModel', ->
     it 'should exist', ->
       expect(@sut).to.exist
 
-  describe '.start', ->
+  describe '->start', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
         @sut = new FlowDeployModel 1234, {}, {}
@@ -44,7 +44,7 @@ describe 'FlowDeployModel', ->
       it 'should not have an error', ->
         expect(@error).not.to.be
 
-  describe '.stop', ->
+  describe '->stop', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
         @sut = new FlowDeployModel
@@ -70,7 +70,7 @@ describe 'FlowDeployModel', ->
       it 'should not have an error', ->
         expect(@error).not.to.be
 
-  describe '.find', ->
+  describe '->find', ->
     beforeEach (done) ->
       @meshbluHttp.device.yields null, uuid: 'honey-bunny'
       @sut.find 21352135, (@error, @device) => done()
@@ -78,7 +78,7 @@ describe 'FlowDeployModel', ->
     it 'should find the flow', ->
       expect(@device).to.deep.equal uuid: 'honey-bunny'
 
-  describe '.sendMessage', ->
+  describe '->sendMessage', ->
     beforeEach ->
       @flow = uuid: 'big-daddy', token: 'tolking'
       @meshbluHttp.mydevices.yields null, devices: [uuid: 'honey-bear']
@@ -96,3 +96,44 @@ describe 'FlowDeployModel', ->
           image: 'octoblu/flow-runner:latest'
           token: 'tolking'
           uuid: 'big-daddy'
+
+  describe '->resetToken', ->
+    describe 'when called with a uuid', ->
+      beforeEach ->
+        @meshbluHttp.resetToken = sinon.stub()
+        @sut.resetToken 'river-flow'
+
+      it 'should call resetToken on meshbluHttp with river-flow', ->
+        expect(@meshbluHttp.resetToken).to.have.been.calledWith 'river-flow'
+
+    describe 'when called with a different uuid', ->
+      beforeEach ->
+        @meshbluHttp.resetToken = sinon.stub()
+        @sut.resetToken 'river-song'
+
+      it 'should call resetToken on meshbluHttp with river-song', ->
+        expect(@meshbluHttp.resetToken).to.have.been.calledWith 'river-song'
+
+    describe 'when meshbluHttp.resetToken yields an error', ->
+      beforeEach (done) ->
+        @meshbluHttp.resetToken = sinon.stub()
+        @sut.resetToken 'something-witty', (@error, @result) => done()
+        @meshbluHttp.resetToken.yield new Error('oh no!')
+
+      it 'should call the callback with the error', ->
+        expect(@error).to.deep.equal new Error('oh no!')
+
+      it 'should call the callback with no result', ->
+        expect(@result).not.to.exist
+
+    describe 'when meshbluHttp.resetToken yields a uuid and token', ->
+      beforeEach (done) ->
+        @meshbluHttp.resetToken = sinon.stub()
+        @sut.resetToken 'something-witty', (@error, @result) => done()
+        @meshbluHttp.resetToken.yield null, uuid: 'river-uuid', token: 'river-token'
+
+      it 'should call the callback with the token', ->
+        expect(@result).to.deep.equal 'river-token'
+
+      it 'should call the callback with an empty error', ->
+        expect(@error).to.not.exist

@@ -14,9 +14,8 @@ class FlowDeployModel
 
   resetToken: (flowId, callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
-    meshbluHttp.generateAndStoreToken flowId, (error, data) =>
-      return callback error if error?
-      callback null, data.token
+    meshbluHttp.resetToken flowId, (error, result) =>
+      callback error, result?.token
 
   sendMessage: (flow, topic, callback=->) =>
     meshbluHttp = new @MeshbluHttp @serviceMeshbluConfig
