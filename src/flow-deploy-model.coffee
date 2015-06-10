@@ -42,16 +42,20 @@ class FlowDeployModel
 
   start: (callback=->) =>
     @find @flowId, (error, flow) =>
+      debug '->start @find', error
       return callback error if error?
 
       @resetToken @flowId, (error, token) =>
+        debug '->start @resetToken', error
         return callback error if error?
         flow.token = token
 
-        @clearState (error) =>
+        @clearState @flowId, (error) =>
+          debug '->start @clearState', error
           return callback error if error?
 
           @sendMessage flow, 'create', (error) ->
+            debug '->start @sendMessage', error
             return callback error
 
   stop: (callback=->) =>

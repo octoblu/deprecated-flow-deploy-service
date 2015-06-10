@@ -146,7 +146,7 @@ describe 'FlowDeployModel', ->
         expect(@sut.resetToken).to.have.been.calledWith '1234'
 
       it 'should call clearState with the uuid', ->
-        expect(@sut.clearState).to.have.been.called
+        expect(@sut.clearState).to.have.been.calledWith '1234'
 
       it 'should call sendMessage', ->
         expect(@sut.sendMessage).to.have.been.calledWith {token: 'token'}

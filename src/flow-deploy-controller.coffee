@@ -10,6 +10,7 @@ class FlowDeployController
     meshbluConfig = _.defaults {}, request.meshbluAuth, @meshbluOptions
     @flowDeployModel = new @FlowDeployModel flowId, meshbluConfig, @meshbluOptions
     @flowDeployModel.start (error) ->
+      debug '@flowDeployModel.start', error, typeof error
       return response.status(401).json(error: 'unauthorized') if error?.message == 'unauthorized'
       return response.status(502).send(error: error) if error?
       return response.status(201).end()
