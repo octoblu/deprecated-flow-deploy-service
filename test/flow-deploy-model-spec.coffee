@@ -192,3 +192,29 @@ describe 'FlowDeployModel', ->
 
       it 'should not have an error', ->
         expect(@error).not.to.be
+
+  describe '->pause', ->
+    describe 'when find returns an error', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel
+        @sut.find = sinon.stub().yields new Error
+        @sut.pause (@error) => done()
+
+      it 'should yield an error', ->
+        expect(@error).to.exist
+
+    describe 'when find succeeds', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel 1234
+        @sut.find = sinon.stub().yields null, {}
+        @sut.sendUserMessage = sinon.stub().yields null
+        @sut.pause (@error) => done()
+
+      it 'should have called find', ->
+        expect(@sut.find).to.have.been.calledWith 1234
+
+      it 'should have called sendUserMessage', ->
+        expect(@sut.sendUserMessage).to.have.been.calledWith {}
+
+      it 'should not have an error', ->
+        expect(@error).not.to.be

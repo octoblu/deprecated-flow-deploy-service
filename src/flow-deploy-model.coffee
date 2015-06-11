@@ -40,6 +40,13 @@ class FlowDeployModel
       meshbluHttp.message msg, (error) =>
         callback error
 
+  pause: (callback=->) =>
+    @find @flowId, (error, flow) =>
+      debug '->pause @find', error
+      return callback error if error?
+
+      callback()
+
   start: (callback=->) =>
     @find @flowId, (error, flow) =>
       debug '->start @find', error

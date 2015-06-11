@@ -34,7 +34,12 @@ app.options '*', cors()
 
 flowDeployController = new FlowDeployController meshbluConfig
 
+# flow:pause, flow:resume, flow:save, flow:save-pause, flow:load
 app.post '/flows/:flowId/instance', flowDeployController.start
+app.post '/flows/:flowId/instance/pause', flowDeployController.pause
+app.post '/flows/:flowId/instance/resume', flowDeployController.resume
+app.post '/flows/:flowId/instance/save/:id', flowDeployController.save
+app.post '/flows/:flowId/instance/save-pause/:id', flowDeployController.savePause
 app.delete '/flows/:flowId/instance', flowDeployController.stop
 
 server = app.listen PORT, ->
