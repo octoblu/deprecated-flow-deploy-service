@@ -27,7 +27,7 @@ class FlowDeployController
     {id, flowId} = request.params
     meshbluConfig = _.defaults {}, request.meshbluAuth, @meshbluOptions
     @flowDeployModel = new @FlowDeployModel flowId, meshbluConfig, @meshbluOptions
-    @flowDeployModel.save id (error) ->
+    @flowDeployModel.save id, (error) ->
       return response.status(401).json(error: 'unauthorized') if error?.message == 'unauthorized'
       return response.status(502).send(error: error) if error?
       return response.status(201).end()
@@ -36,7 +36,7 @@ class FlowDeployController
     {id, flowId} = request.params
     meshbluConfig = _.defaults {}, request.meshbluAuth, @meshbluOptions
     @flowDeployModel = new @FlowDeployModel flowId, meshbluConfig, @meshbluOptions
-    @flowDeployModel.savePause id (error) ->
+    @flowDeployModel.savePause id, (error) ->
       return response.status(401).json(error: 'unauthorized') if error?.message == 'unauthorized'
       return response.status(502).send(error: error) if error?
       return response.status(201).end()

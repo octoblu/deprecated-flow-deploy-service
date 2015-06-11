@@ -21,6 +21,19 @@ class FlowDeployModel
     meshbluHttp.resetToken flowId, (error, result) =>
       callback error, result?.token
 
+  sendFlowMessage: (flow, topic, payload, callback=->) =>
+    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
+    msg =
+      devices: [flow.uuid]
+      topic: topic
+
+    debug 'sendFlowMessage.token', flow.token
+
+    msg.payload = payload
+
+    meshbluHttp.message msg, (error) =>
+      callback error
+
   sendMessage: (flow, topic, callback=->) =>
     meshbluHttp = new @MeshbluHttp @serviceMeshbluConfig
     meshbluHttp.mydevices type: 'octoblu:octo-master', online: true, (error, data) =>
@@ -45,7 +58,36 @@ class FlowDeployModel
       debug '->pause @find', error
       return callback error if error?
 
-      callback()
+      @sendFlowMessage flow, 'flow:pause', {}, (error) ->
+        debug '->pause @sendMessage', error
+        return callback error
+
+  resume: (callback=->) =>
+    @find @flowId, (error, flow) =>
+      debug '->resume @find', error
+      return callback error if error?
+
+      @sendFlowMessage flow, 'flow:resume', {}, (error) ->
+        debug '->resume @sendMessage', error
+        return callback error
+
+  save: (id, callback=->) =>
+    @find @flowId, (error, flow) =>
+      debug '->save @find', error
+      return callback error if error?
+
+      @sendFlowMessage flow, 'flow:save', stateId: id, (error) ->
+        debug '->save @sendMessage', error
+        return callback error
+
+  savePause: (id, callback=->) =>
+    @find @flowId, (error, flow) =>
+      debug '->savePause @find', error
+      return callback error if error?
+
+      @sendFlowMessage flow, 'flow:save-pause', stateId: id, (error) ->
+        debug '->savePause @sendMessage', error
+        return callback error
 
   start: (callback=->) =>
     @find @flowId, (error, flow) =>
