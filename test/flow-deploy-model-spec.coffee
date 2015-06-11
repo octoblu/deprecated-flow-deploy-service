@@ -101,6 +101,20 @@ describe 'FlowDeployModel', ->
       it 'should call the callback with an empty error', ->
         expect(@error).to.not.exist
 
+  describe '->sendFlowMessage', ->
+    beforeEach ->
+      @flow = uuid: 'big-daddy', token: 'tolking'
+      @meshbluHttp.mydevices.yields null, devices: [uuid: 'honey-bear']
+      @meshbluHttp.message.yields null
+      @sut.sendFlowMessage @flow, 'test', {pay: 'load'}
+
+    it 'should call message', ->
+      expect(@meshbluHttp.message).to.have.been.calledWith
+        devices: ['big-daddy']
+        topic: "test"
+        payload:
+          pay: 'load'
+
   describe '->sendMessage', ->
     beforeEach ->
       @flow = uuid: 'big-daddy', token: 'tolking'
@@ -152,7 +166,7 @@ describe 'FlowDeployModel', ->
         expect(@sut.sendMessage).to.have.been.calledWith {token: 'token'}
 
       it 'should not have an error', ->
-        expect(@error).not.to.be
+        expect(@error).not.to.exist
 
     describe 'when clearState yields an error', ->
       beforeEach (done) ->
@@ -191,4 +205,108 @@ describe 'FlowDeployModel', ->
         expect(@sut.sendMessage).to.have.been.calledWith {}
 
       it 'should not have an error', ->
-        expect(@error).not.to.be
+        expect(@error).not.to.exist
+
+  describe '->pause', ->
+    describe 'when find returns an error', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel
+        @sut.find = sinon.stub().yields new Error
+        @sut.pause (@error) => done()
+
+      it 'should yield an error', ->
+        expect(@error).to.exist
+
+    describe 'when find succeeds', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel 1234
+        @sut.find = sinon.stub().yields null, {}
+        @sut.sendFlowMessage = sinon.stub().yields null
+        @sut.pause (@error) => done()
+
+      it 'should have called find', ->
+        expect(@sut.find).to.have.been.calledWith 1234
+
+      it 'should have called sendFlowMessage', ->
+        expect(@sut.sendFlowMessage).to.have.been.calledWith {}, 'flow:pause', {}
+
+      it 'should not have an error', ->
+        expect(@error).not.to.exist
+
+  describe '->resume', ->
+    describe 'when find returns an error', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel
+        @sut.find = sinon.stub().yields new Error
+        @sut.resume (@error) => done()
+
+      it 'should yield an error', ->
+        expect(@error).to.exist
+
+    describe 'when find succeeds', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel 1234
+        @sut.find = sinon.stub().yields null, {}
+        @sut.sendFlowMessage = sinon.stub().yields null
+        @sut.resume (@error) => done()
+
+      it 'should have called find', ->
+        expect(@sut.find).to.have.been.calledWith 1234
+
+      it 'should have called sendFlowMessage', ->
+        expect(@sut.sendFlowMessage).to.have.been.calledWith {}, 'flow:resume', {}
+
+      it 'should not have an error', ->
+        expect(@error).not.to.exist
+
+  describe '->save', ->
+    describe 'when find returns an error', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel
+        @sut.find = sinon.stub().yields new Error
+        @sut.save 1555, (@error) => done()
+
+      it 'should yield an error', ->
+        expect(@error).to.exist
+
+    describe 'when find succeeds', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel 1234
+        @sut.find = sinon.stub().yields null, {}
+        @sut.sendFlowMessage = sinon.stub().yields null
+        @sut.save 1235, (@error) => done()
+
+      it 'should have called find', ->
+        expect(@sut.find).to.have.been.calledWith 1234
+
+      it 'should have called sendFlowMessage', ->
+        expect(@sut.sendFlowMessage).to.have.been.calledWith {}, 'flow:save', stateId: 1235
+
+      it 'should not have an error', ->
+        expect(@error).not.to.exist
+
+  describe '->savePause', ->
+    describe 'when find returns an error', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel
+        @sut.find = sinon.stub().yields new Error
+        @sut.savePause 1555, (@error) => done()
+
+      it 'should yield an error', ->
+        expect(@error).to.exist
+
+    describe 'when find succeeds', ->
+      beforeEach (done) ->
+        @sut = new FlowDeployModel 1234
+        @sut.find = sinon.stub().yields null, {}
+        @sut.sendFlowMessage = sinon.stub().yields null
+        @sut.savePause 1235, (@error) => done()
+
+      it 'should have called find', ->
+        expect(@sut.find).to.have.been.calledWith 1234
+
+      it 'should have called sendFlowMessage', ->
+        expect(@sut.sendFlowMessage).to.have.been.calledWith {}, 'flow:save-pause', stateId: 1235
+
+      it 'should not have an error', ->
+        expect(@error).not.to.exist
