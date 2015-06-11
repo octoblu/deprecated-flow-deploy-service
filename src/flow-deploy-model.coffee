@@ -1,14 +1,32 @@
-_ = require 'lodash'
+_       = require 'lodash'
 request = require 'request'
-debug = require('debug')('flow-deploy-service:flow-deploy-model')
+debug   = require('debug')('flow-deploy-service:flow-deploy-model')
 
 class FlowDeployModel
   constructor: (@flowId, @userMeshbluConfig, @serviceMeshbluConfig, dependencies={}) ->
-    @MeshbluHttp = dependencies.MeshbluHttp || require 'meshblu-http'
+    @MeshbluHttp = dependencies.MeshbluHttp ? require 'meshblu-http'
+    @async = dependencies.async ? require 'async'
+    @TIMEOUT = dependencies.TIMEOUT ? 60 * 1000
+    @WAIT = dependencies.WAIT ? 2000
 
   clearState: (uuid, callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     meshbluHttp.update states: null, uuid: uuid, callback
+
+  didSave: (id, callback=->) =>
+    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
+    timeLimit = _.now() + @TIMEOUT
+    @async.doUntil (next) =>
+      return next new Error 'Save Timeout' if _.now() > timeLimit
+      setTimeout =>
+        meshbluHttp.device uuid: @flowId, next
+      , @WAIT
+
+    , (device) =>
+      return device.stateId == id
+    , (error) =>
+      callback error
+
 
   find: (flowId, callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
@@ -58,36 +76,38 @@ class FlowDeployModel
       debug '->pause @find', error
       return callback error if error?
 
-      @sendFlowMessage flow, 'flow:pause', {}, (error) ->
+      @sendFlowMessage flow, 'flow:pause', {}, (error) =>
         debug '->pause @sendMessage', error
-        return callback error
+        callback error
 
   resume: (callback=->) =>
     @find @flowId, (error, flow) =>
       debug '->resume @find', error
       return callback error if error?
 
-      @sendFlowMessage flow, 'flow:resume', {}, (error) ->
+      @sendFlowMessage flow, 'flow:resume', {}, (error) =>
         debug '->resume @sendMessage', error
-        return callback error
+        callback error
 
   save: (id, callback=->) =>
     @find @flowId, (error, flow) =>
       debug '->save @find', error
       return callback error if error?
 
-      @sendFlowMessage flow, 'flow:save', stateId: id, (error) ->
+      @sendFlowMessage flow, 'flow:save', stateId: id, (error) =>
         debug '->save @sendMessage', error
-        return callback error
+
+        @didSave id, callback
 
   savePause: (id, callback=->) =>
     @find @flowId, (error, flow) =>
       debug '->savePause @find', error
       return callback error if error?
 
-      @sendFlowMessage flow, 'flow:save-pause', stateId: id, (error) ->
+      @sendFlowMessage flow, 'flow:save-pause', stateId: id, (error) =>
         debug '->savePause @sendMessage', error
-        return callback error
+
+        @didSave id, callback
 
   start: (callback=->) =>
     @find @flowId, (error, flow) =>
@@ -103,14 +123,14 @@ class FlowDeployModel
           debug '->start @clearState', error
           return callback error if error?
 
-          @sendMessage flow, 'create', (error) ->
+          @sendMessage flow, 'create', (error) =>
             debug '->start @sendMessage', error
-            return callback error
+            callback error
 
   stop: (callback=->) =>
     @find @flowId, (error, flow) =>
       return callback error if error?
-      @sendMessage flow, 'delete', (error) ->
+      @sendMessage flow, 'delete', (error) =>
         callback error
 
 module.exports = FlowDeployModel

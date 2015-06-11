@@ -11,7 +11,7 @@ describe 'FlowDeployModel', ->
     MeshbluHttp = =>
       @meshbluHttp
 
-    @sut = new FlowDeployModel @flowId, {}, {}, MeshbluHttp: MeshbluHttp
+    @sut = new FlowDeployModel @flowId, {}, {}, MeshbluHttp: MeshbluHttp, TIMEOUT: 1000, WAIT: 100
 
   describe '->constructor', ->
     it 'should exist', ->
@@ -259,11 +259,50 @@ describe 'FlowDeployModel', ->
       it 'should not have an error', ->
         expect(@error).not.to.exist
 
+  describe '->didSave', ->
+    describe 'when the state has changed', ->
+      beforeEach (done) ->
+        @meshbluHttp.device = sinon.stub()
+        @meshbluHttp.device.onCall(0).yields null, {}
+        @meshbluHttp.device.onCall(1).yields null, stateId:'4321'
+        @sut.didSave '4321', (@error) => done()
+
+      it 'should not have an error', ->
+        expect(@error).to.not.exist
+
+      it 'should call device', ->
+        expect(@meshbluHttp.device).to.have.been.calledWith uuid: 1234
+
+    describe 'when the state is something else and has changed', ->
+      beforeEach (done) ->
+        @meshbluHttp.device = sinon.stub()
+        @meshbluHttp.device.onCall(0).yields null, {}
+        @meshbluHttp.device.onCall(1).yields null, stateId: '5678'
+        @sut.didSave '5678', (@error) => done()
+
+      it 'should not have an error', ->
+        expect(@error).to.not.exist
+
+      it 'should call device', ->
+        expect(@meshbluHttp.device).to.have.been.calledWith uuid: 1234
+
+    describe 'when the state does not change', ->
+      beforeEach (done) ->
+        @meshbluHttp.device = sinon.stub().yields null, {}
+        @sut.didSave '5678', (@error) => done()
+
+      it 'should have an error', ->
+        expect(@error).to.exist
+
+      it 'should call device', ->
+        expect(@meshbluHttp.device).to.have.been.calledWith uuid: 1234
+
   describe '->save', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
         @sut = new FlowDeployModel
         @sut.find = sinon.stub().yields new Error
+        @sut.didSave = sinon.stub().yields null
         @sut.save 1555, (@error) => done()
 
       it 'should yield an error', ->
@@ -274,6 +313,7 @@ describe 'FlowDeployModel', ->
         @sut = new FlowDeployModel 1234
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
+        @sut.didSave = sinon.stub().yields null
         @sut.save 1235, (@error) => done()
 
       it 'should have called find', ->
@@ -290,6 +330,7 @@ describe 'FlowDeployModel', ->
       beforeEach (done) ->
         @sut = new FlowDeployModel
         @sut.find = sinon.stub().yields new Error
+        @sut.didSave = sinon.stub().yields null
         @sut.savePause 1555, (@error) => done()
 
       it 'should yield an error', ->
@@ -300,6 +341,7 @@ describe 'FlowDeployModel', ->
         @sut = new FlowDeployModel 1234
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
+        @sut.didSave = sinon.stub().yields null
         @sut.savePause 1235, (@error) => done()
 
       it 'should have called find', ->
