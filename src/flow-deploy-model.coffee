@@ -6,6 +6,10 @@ class FlowDeployModel
   constructor: (@flowId, @userMeshbluConfig, @serviceMeshbluConfig, dependencies={}) ->
     @MeshbluHttp = dependencies.MeshbluHttp || require 'meshblu-http'
 
+  clearState: (uuid, callback=->) =>
+    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
+    meshbluHttp.update states: null, uuid: uuid, callback
+
   find: (flowId, callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     meshbluHttp.device flowId, (error, device) =>
@@ -14,9 +18,8 @@ class FlowDeployModel
 
   resetToken: (flowId, callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
-    meshbluHttp.generateAndStoreToken flowId, (error, data) =>
-      return callback error if error?
-      callback null, data.token
+    meshbluHttp.resetToken flowId, (error, result) =>
+      callback error, result?.token
 
   sendMessage: (flow, topic, callback=->) =>
     meshbluHttp = new @MeshbluHttp @serviceMeshbluConfig
@@ -39,12 +42,21 @@ class FlowDeployModel
 
   start: (callback=->) =>
     @find @flowId, (error, flow) =>
+      debug '->start @find', error
       return callback error if error?
+
       @resetToken @flowId, (error, token) =>
+        debug '->start @resetToken', error
         return callback error if error?
         flow.token = token
-        @sendMessage flow, 'create', (error) ->
-          callback error
+
+        @clearState @flowId, (error) =>
+          debug '->start @clearState', error
+          return callback error if error?
+
+          @sendMessage flow, 'create', (error) ->
+            debug '->start @sendMessage', error
+            return callback error
 
   stop: (callback=->) =>
     @find @flowId, (error, flow) =>

@@ -1,4 +1,4 @@
-FlowDeployController = require '../flow-deploy-controller'
+FlowDeployController = require '../src/flow-deploy-controller'
 
 describe 'FlowDeployController', ->
   beforeEach ->

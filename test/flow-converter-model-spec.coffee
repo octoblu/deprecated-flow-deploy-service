@@ -1,4 +1,4 @@
-FlowConverterModel = require '../flow-converter-model'
+FlowConverterModel = require '../src/flow-converter-model'
 
 describe 'FlowConverterModel', ->
   beforeEach ->
