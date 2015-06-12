@@ -2,7 +2,7 @@ FlowDeployModel = require '../src/flow-deploy-model'
 
 describe 'FlowDeployModel', ->
   beforeEach ->
-    @flowId  = 1234
+    @flowId  = '1234'
     @meshbluHttp =
       mydevices: sinon.stub()
       message: sinon.stub()
@@ -137,7 +137,7 @@ describe 'FlowDeployModel', ->
   describe '->start', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234, {}, {}
+        @sut = new FlowDeployModel '1234', {}, {}
         @sut.find = sinon.stub().yields new Error
         @sut.start (@error) => done()
 
@@ -193,13 +193,13 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234
+        @sut = new FlowDeployModel '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendMessage = sinon.stub().yields null
         @sut.stop (@error) => done()
 
       it 'should have called find', ->
-        expect(@sut.find).to.have.been.calledWith 1234
+        expect(@sut.find).to.have.been.calledWith '1234'
 
       it 'should have called sendMessage', ->
         expect(@sut.sendMessage).to.have.been.calledWith {}
@@ -219,13 +219,13 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234
+        @sut = new FlowDeployModel '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
         @sut.pause (@error) => done()
 
       it 'should have called find', ->
-        expect(@sut.find).to.have.been.calledWith 1234
+        expect(@sut.find).to.have.been.calledWith '1234'
 
       it 'should have called sendFlowMessage', ->
         expect(@sut.sendFlowMessage).to.have.been.calledWith {}, 'flow:pause', {}
@@ -245,13 +245,13 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234
+        @sut = new FlowDeployModel '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
         @sut.resume (@error) => done()
 
       it 'should have called find', ->
-        expect(@sut.find).to.have.been.calledWith 1234
+        expect(@sut.find).to.have.been.calledWith '1234'
 
       it 'should have called sendFlowMessage', ->
         expect(@sut.sendFlowMessage).to.have.been.calledWith {}, 'flow:resume', {}
@@ -271,7 +271,7 @@ describe 'FlowDeployModel', ->
         expect(@error).to.not.exist
 
       it 'should call device', ->
-        expect(@meshbluHttp.device).to.have.been.calledWith uuid: 1234
+        expect(@meshbluHttp.device).to.have.been.calledWith '1234'
 
     describe 'when the state is something else and has changed', ->
       beforeEach (done) ->
@@ -284,7 +284,7 @@ describe 'FlowDeployModel', ->
         expect(@error).to.not.exist
 
       it 'should call device', ->
-        expect(@meshbluHttp.device).to.have.been.calledWith uuid: 1234
+        expect(@meshbluHttp.device).to.have.been.calledWith '1234'
 
     describe 'when the state does not change', ->
       beforeEach (done) ->
@@ -295,7 +295,7 @@ describe 'FlowDeployModel', ->
         expect(@error).to.exist
 
       it 'should call device', ->
-        expect(@meshbluHttp.device).to.have.been.calledWith uuid: 1234
+        expect(@meshbluHttp.device).to.have.been.calledWith '1234'
 
   describe '->save', ->
     describe 'when find returns an error', ->
@@ -310,14 +310,14 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234
+        @sut = new FlowDeployModel '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
         @sut.didSave = sinon.stub().yields null
         @sut.save 1235, (@error) => done()
 
       it 'should have called find', ->
-        expect(@sut.find).to.have.been.calledWith 1234
+        expect(@sut.find).to.have.been.calledWith '1234'
 
       it 'should have called sendFlowMessage', ->
         expect(@sut.sendFlowMessage).to.have.been.calledWith {}, 'flow:save', stateId: 1235
@@ -338,14 +338,14 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel 1234
+        @sut = new FlowDeployModel '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
         @sut.didSave = sinon.stub().yields null
         @sut.savePause 1235, (@error) => done()
 
       it 'should have called find', ->
-        expect(@sut.find).to.have.been.calledWith 1234
+        expect(@sut.find).to.have.been.calledWith '1234'
 
       it 'should have called sendFlowMessage', ->
         expect(@sut.sendFlowMessage).to.have.been.calledWith {}, 'flow:save-pause', stateId: 1235

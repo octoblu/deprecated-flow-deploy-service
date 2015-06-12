@@ -14,18 +14,21 @@ class FlowDeployModel
     meshbluHttp.update states: null, uuid: uuid, callback
 
   didSave: (id, callback=->) =>
+    debug 'didSave', id
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     timeLimit = _.now() + @TIMEOUT
     wait = 0
     @async.doUntil (next) =>
       return next new Error 'Save Timeout' if _.now() > timeLimit
       setTimeout =>
-        meshbluHttp.device uuid: @flowId, next
+        meshbluHttp.device @flowId, next
       , wait
+      debug 'doUntil loop wait', wait
       wait = @WAIT
     , (device) =>
       return device.stateId == id
     , (error) =>
+      debug 'didSave error', error
       callback error
 
 
