@@ -139,6 +139,7 @@ describe 'FlowDeployModel', ->
       beforeEach (done) ->
         @sut = new FlowDeployModel '1234', {}, {}
         @sut.find = sinon.stub().yields new Error
+        @sut.sendFlowMessage = sinon.spy()
         @sut.start (@error) => done()
 
       it 'should yield an error', ->
@@ -151,6 +152,7 @@ describe 'FlowDeployModel', ->
         @sut.resetToken = sinon.stub().yields null, 'token'
         @sut.clearState = sinon.stub().yields null
         @sut.sendMessage = sinon.stub().yields null
+        @sut.sendFlowMessage = sinon.spy()
         @sut.start (@error) => done()
 
       it 'should call find', ->
@@ -175,6 +177,7 @@ describe 'FlowDeployModel', ->
         @sut.resetToken = sinon.stub().yields null, 'token'
         @sut.clearState = sinon.stub().yields new Error('state is still opaque')
         @sut.sendMessage = sinon.stub().yields new Error('should not be called')
+        @sut.sendFlowMessage = sinon.spy()
         @sut.start (@error) => done()
 
       it 'should call the callback with the error', ->
@@ -186,6 +189,7 @@ describe 'FlowDeployModel', ->
       beforeEach (done) ->
         @sut = new FlowDeployModel
         @sut.find = sinon.stub().yields new Error
+        @sut.sendFlowMessage = sinon.spy()
         @sut.stop (@error) => done()
 
       it 'should yield an error', ->
@@ -196,6 +200,7 @@ describe 'FlowDeployModel', ->
         @sut = new FlowDeployModel '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendMessage = sinon.stub().yields null
+        @sut.sendFlowMessage = sinon.spy()
         @sut.stop (@error) => done()
 
       it 'should have called find', ->

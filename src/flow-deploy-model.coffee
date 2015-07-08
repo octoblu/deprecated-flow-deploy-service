@@ -115,26 +115,32 @@ class FlowDeployModel
 
   start: (callback=->) =>
     @find @flowId, (error, flow) =>
+      @sendFlowMessage flow, 'step-change', step: 2
       debug '->start @find', error
       return callback error if error?
 
       @resetToken @flowId, (error, token) =>
+        @sendFlowMessage flow, 'step-change', step: 3
         debug '->start @resetToken', error
         return callback error if error?
         flow.token = token
 
         @clearState @flowId, (error) =>
+          @sendFlowMessage flow, 'step-change', step: 4
           debug '->start @clearState', error
           return callback error if error?
 
           @sendMessage flow, 'create', (error) =>
+            @sendFlowMessage flow, 'step-change', step: 5
             debug '->start @sendMessage', error
             callback error
 
   stop: (callback=->) =>
     @find @flowId, (error, flow) =>
+      @sendFlowMessage flow, 'step-change', step: -2
       return callback error if error?
       @sendMessage flow, 'delete', (error) =>
+        @sendFlowMessage flow, 'step-change', step: -3
         callback error
 
 module.exports = FlowDeployModel
