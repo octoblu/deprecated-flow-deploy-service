@@ -7,33 +7,35 @@ describe 'FlowDeployModel', ->
       mydevices: sinon.stub()
       message: sinon.stub()
       device: sinon.stub()
+      update: sinon.stub()
+      updateDangerously: sinon.stub()
+      resetToken: sinon.stub()
 
     MeshbluHttp = =>
       @meshbluHttp
 
-    @sut = new FlowDeployModel @flowId, {}, {}, MeshbluHttp: MeshbluHttp, TIMEOUT: 1000, WAIT: 100
+    @dependencies = MeshbluHttp: MeshbluHttp, TIMEOUT: 1000, WAIT: 100
+
+    @sut = new FlowDeployModel @flowId, {}, {}, @dependencies
 
   describe '->constructor', ->
     it 'should exist', ->
       expect(@sut).to.exist
 
   describe '->clearState', ->
-    beforeEach ->
-      @meshbluHttp.update = sinon.stub()
-
     describe 'when called with a uuid', ->
       beforeEach ->
         @sut.clearState 'whatevs'
 
       it 'should call meshbluHttp.update', ->
-        expect(@meshbluHttp.update).to.have.been.calledWith uuid: 'whatevs', states: null
+        expect(@meshbluHttp.update).to.have.been.calledWith 'whatevs', states: null
 
     describe 'when called with a different uuid', ->
       beforeEach ->
         @sut.clearState 'evswhat'
 
       it 'should call meshbluHttp.update', ->
-        expect(@meshbluHttp.update).to.have.been.calledWith uuid: 'evswhat', states: null
+        expect(@meshbluHttp.update).to.have.been.calledWith 'evswhat', states: null
 
     describe 'when meshbluHttp.update yields an error', ->
       beforeEach (done) ->
@@ -63,7 +65,6 @@ describe 'FlowDeployModel', ->
   describe '->resetToken', ->
     describe 'when called with a uuid', ->
       beforeEach ->
-        @meshbluHttp.resetToken = sinon.stub()
         @sut.resetToken 'river-flow'
 
       it 'should call resetToken on meshbluHttp with river-flow', ->
@@ -71,7 +72,6 @@ describe 'FlowDeployModel', ->
 
     describe 'when called with a different uuid', ->
       beforeEach ->
-        @meshbluHttp.resetToken = sinon.stub()
         @sut.resetToken 'river-song'
 
       it 'should call resetToken on meshbluHttp with river-song', ->
@@ -79,7 +79,6 @@ describe 'FlowDeployModel', ->
 
     describe 'when meshbluHttp.resetToken yields an error', ->
       beforeEach (done) ->
-        @meshbluHttp.resetToken = sinon.stub()
         @sut.resetToken 'something-witty', (@error, @result) => done()
         @meshbluHttp.resetToken.yield new Error('oh no!')
 
@@ -91,7 +90,6 @@ describe 'FlowDeployModel', ->
 
     describe 'when meshbluHttp.resetToken yields a uuid and token', ->
       beforeEach (done) ->
-        @meshbluHttp.resetToken = sinon.stub()
         @sut.resetToken 'something-witty', (@error, @result) => done()
         @meshbluHttp.resetToken.yield null, uuid: 'river-uuid', token: 'river-token'
 
@@ -137,7 +135,7 @@ describe 'FlowDeployModel', ->
   describe '->start', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234', {}, {}
+        @sut = new FlowDeployModel '1234', {}, {}, @dependencies
         @sut.find = sinon.stub().yields new Error
         @sut.sendFlowMessage = sinon.spy()
         @sut.start (@error) => done()
@@ -147,7 +145,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when find, resetToken, clearState, and sendMessage succeed', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234', {}, {}
+        @sut = new FlowDeployModel '1234', {}, {}, @dependencies
         @sut.find = sinon.stub().yields null, {}
         @sut.resetToken = sinon.stub().yields null, 'token'
         @sut.clearState = sinon.stub().yields null
@@ -172,7 +170,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when clearState yields an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234', {}, {}
+        @sut = new FlowDeployModel '1234', {}, {}, @dependencies
         @sut.find = sinon.stub().yields null, {}
         @sut.resetToken = sinon.stub().yields null, 'token'
         @sut.clearState = sinon.stub().yields new Error('state is still opaque')
@@ -187,7 +185,7 @@ describe 'FlowDeployModel', ->
   describe '->stop', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel
+        @sut = new FlowDeployModel null, null, null, @dependencies
         @sut.find = sinon.stub().yields new Error
         @sut.sendFlowMessage = sinon.spy()
         @sut.stop (@error) => done()
@@ -197,7 +195,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234'
+        @sut = new FlowDeployModel '1234', null, null, @dependencies
         @sut.find = sinon.stub().yields null, {}
         @sut.sendMessage = sinon.stub().yields null
         @sut.sendFlowMessage = sinon.spy()

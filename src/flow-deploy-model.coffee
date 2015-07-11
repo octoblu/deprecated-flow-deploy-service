@@ -11,7 +11,7 @@ class FlowDeployModel
 
   clearState: (uuid, callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
-    meshbluHttp.update states: null, uuid: uuid, callback
+    meshbluHttp.update uuid, states: null, callback
 
   didSave: (id, callback=->) =>
     debug 'didSave', id
@@ -30,7 +30,6 @@ class FlowDeployModel
     , (error) =>
       debug 'didSave error', error
       callback error
-
 
   find: (flowId, callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
@@ -114,6 +113,8 @@ class FlowDeployModel
         @didSave id, callback
 
   start: (callback=->) =>
+    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
+    meshbluHttp.update @flowId, deploying: true
     @find @flowId, (error, flow) =>
       @sendFlowMessage flow, 'step-change', step: 2
       debug '->start @find', error
@@ -133,14 +134,18 @@ class FlowDeployModel
           @sendMessage flow, 'create', (error) =>
             @sendFlowMessage flow, 'step-change', step: 5
             debug '->start @sendMessage', error
+            meshbluHttp.update @flowId, deploying: false
             callback error
 
   stop: (callback=->) =>
+    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
+    meshbluHttp.update @flowId, stopping: true
     @find @flowId, (error, flow) =>
       @sendFlowMessage flow, 'step-change', step: -2
       return callback error if error?
       @sendMessage flow, 'delete', (error) =>
         @sendFlowMessage flow, 'step-change', step: -3
+        meshbluHttp.update @flowId, stopping: false
         callback error
 
 module.exports = FlowDeployModel
