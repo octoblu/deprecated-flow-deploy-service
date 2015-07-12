@@ -140,7 +140,7 @@ class FlowDeployModel
       @sendMessage flow, 'delete', (error) =>
         _.delay =>
           meshbluHttp.update @flowId, stopping: false
-        , 30000
+        , 10000
         callback error
 
 module.exports = FlowDeployModel
