@@ -116,36 +116,31 @@ class FlowDeployModel
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     meshbluHttp.update @flowId, deploying: true
     @find @flowId, (error, flow) =>
-      @sendFlowMessage flow, 'step-change', step: 2
       debug '->start @find', error
       return callback error if error?
 
       @resetToken @flowId, (error, token) =>
-        @sendFlowMessage flow, 'step-change', step: 3
         debug '->start @resetToken', error
         return callback error if error?
         flow.token = token
 
         @clearState @flowId, (error) =>
-          @sendFlowMessage flow, 'step-change', step: 4
           debug '->start @clearState', error
           return callback error if error?
 
           @sendMessage flow, 'create', (error) =>
-            @sendFlowMessage flow, 'step-change', step: 5
             debug '->start @sendMessage', error
-            meshbluHttp.update @flowId, deploying: false
             callback error
 
   stop: (callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     meshbluHttp.update @flowId, stopping: true
     @find @flowId, (error, flow) =>
-      @sendFlowMessage flow, 'step-change', step: -2
       return callback error if error?
       @sendMessage flow, 'delete', (error) =>
-        @sendFlowMessage flow, 'step-change', step: -3
-        meshbluHttp.update @flowId, stopping: false
+        _.delay =>
+          meshbluHttp.update @flowId, stopping: false
+        , 30000
         callback error
 
 module.exports = FlowDeployModel
