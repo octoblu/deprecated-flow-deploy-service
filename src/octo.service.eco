@@ -1,0 +1,33 @@
+[Unit]
+Description=Octo Instance
+After=docker.service
+Requires=docker.service
+
+[Service]
+KillSignal=SIGINT
+TimeoutStartSec=300
+TimeoutStopSec=300
+ExecStartPre=-/usr/bin/docker kill octo-<%= @uuid %>
+ExecStartPre=-/usr/bin/docker rm octo-<%= @uuid %>
+ExecStart=/bin/sh -c '/usr/bin/docker run \
+  --name octo-<%= @uuid %> \
+  -e MESHBLU_SERVER=$(/usr/bin/etcdctl get /meshblu/host) \
+  -e MESHBLU_PORT=$(/usr/bin/etcdctl get /meshblu/port) \
+  -e AIRBRAKE_KEY=$(/usr/bin/etcdctl get /airbrake/key) \
+  -e MESHBLU_UUID=<%= @uuid %> \
+  -e MESHBLU_TOKEN=<%= @token %> \
+  -e OCTOBLU_URI=$(/usr/bin/etcdctl get /octoblu/uri) \
+  -e NODE_ENV=$(/usr/bin/etcdctl get /node/env) \
+  <%= @image %>'
+ExecStop=/bin/sh -c '/usr/bin/echo "Saving state" && \
+  /usr/bin/docker run \
+    --rm \
+    -e FLOW_DEPLOY_SERVICE_BASE_URI=$(/usr/bin/etcdctl get /flow-deploy-service/base-uri) \
+    -e MESHBLU_SERVER=$(/usr/bin/etcdctl get /meshblu/host) \
+    -e MESHBLU_PORT=$(/usr/bin/etcdctl get /meshblu/port) \
+    -e MESHBLU_UUID=<%= @uuid %> \
+    -e MESHBLU_TOKEN=<%= @token %> \
+  octoblu/flow-util:entrypoint savepause'
+
+[X-Fleet]
+MachineMetadata=Role=octo-runner
