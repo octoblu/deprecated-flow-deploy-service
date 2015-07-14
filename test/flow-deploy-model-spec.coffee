@@ -113,25 +113,6 @@ describe 'FlowDeployModel', ->
         payload:
           pay: 'load'
 
-  describe '->sendMessage', ->
-    beforeEach ->
-      @flow = uuid: 'big-daddy', token: 'tolking'
-      @meshbluHttp.mydevices.yields null, devices: [uuid: 'honey-bear']
-      @meshbluHttp.message.yields null
-      @sut.sendMessage @flow, 'test'
-
-    it 'should call mydevices', ->
-      expect(@meshbluHttp.mydevices).to.have.been.calledWith type: 'octoblu:octo-master', online: true
-
-    it 'should call message', ->
-      expect(@meshbluHttp.message).to.have.been.calledWith
-        devices: ['honey-bear']
-        topic: "test"
-        payload:
-          image: 'octoblu/flow-runner:latest'
-          token: 'tolking'
-          uuid: 'big-daddy'
-
   describe '->start', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
@@ -143,13 +124,13 @@ describe 'FlowDeployModel', ->
       it 'should yield an error', ->
         expect(@error).to.exist
 
-    describe 'when find, resetToken, clearState, and sendMessage succeed', ->
+    describe 'when find, resetToken, clearState, and useContainer succeed', ->
       beforeEach (done) ->
         @sut = new FlowDeployModel '1234', {}, {}, @dependencies
         @sut.find = sinon.stub().yields null, {}
         @sut.resetToken = sinon.stub().yields null, 'token'
         @sut.clearState = sinon.stub().yields null
-        @sut.sendMessage = sinon.stub().yields null
+        @sut.useContainer = sinon.stub().yields null
         @sut.sendFlowMessage = sinon.spy()
         @sut.start (@error) => done()
 
@@ -162,8 +143,8 @@ describe 'FlowDeployModel', ->
       it 'should call clearState with the uuid', ->
         expect(@sut.clearState).to.have.been.calledWith '1234'
 
-      it 'should call sendMessage', ->
-        expect(@sut.sendMessage).to.have.been.calledWith {token: 'token'}
+      it 'should call useContainer', ->
+        expect(@sut.useContainer).to.have.been.calledWith {token: 'token'}
 
       it 'should not have an error', ->
         expect(@error).not.to.exist
@@ -174,7 +155,7 @@ describe 'FlowDeployModel', ->
         @sut.find = sinon.stub().yields null, {}
         @sut.resetToken = sinon.stub().yields null, 'token'
         @sut.clearState = sinon.stub().yields new Error('state is still opaque')
-        @sut.sendMessage = sinon.stub().yields new Error('should not be called')
+        @sut.useContainer = sinon.stub().yields new Error('should not be called')
         @sut.sendFlowMessage = sinon.spy()
         @sut.start (@error) => done()
 
@@ -197,15 +178,15 @@ describe 'FlowDeployModel', ->
       beforeEach (done) ->
         @sut = new FlowDeployModel '1234', null, null, @dependencies
         @sut.find = sinon.stub().yields null, {}
-        @sut.sendMessage = sinon.stub().yields null
+        @sut.useContainer = sinon.stub().yields null
         @sut.sendFlowMessage = sinon.spy()
         @sut.stop (@error) => done()
 
       it 'should have called find', ->
         expect(@sut.find).to.have.been.calledWith '1234'
 
-      it 'should have called sendMessage', ->
-        expect(@sut.sendMessage).to.have.been.calledWith {}
+      it 'should have called useContainer', ->
+        expect(@sut.useContainer).to.have.been.calledWith {}
 
       it 'should not have an error', ->
         expect(@error).not.to.exist

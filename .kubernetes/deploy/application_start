@@ -5,6 +5,8 @@ DISTRIBUTION_DIR=`dirname $SCRIPT_DIR`
 
 export PATH=/usr/local/bin:$PATH
 
+export FLEETCTL_TUNNEL=`AWS_DEFAULT_REGION=us-west-2 aws ec2 describe-instances --filters "Name=tag:Name,Values=octo-cluster" | jq -r '.Reservations[].Instances[].PublicIpAddress' | grep -v null | head -n 1`
+
 BLUE_PORT=`AWS_DEFAULT_REGION=us-west-2 aws elb describe-tags --load-balancer-name flow-deploy-octoblu-com | jq '.TagDescriptions[0].Tags[] | select(.Key == "blue") | .Value | tonumber'`
 GREEN_PORT=`AWS_DEFAULT_REGION=us-west-2 aws elb describe-tags --load-balancer-name flow-deploy-octoblu-com | jq '.TagDescriptions[0].Tags[] | select(.Key == "green") | .Value | tonumber'`
 

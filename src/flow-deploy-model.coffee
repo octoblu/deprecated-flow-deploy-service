@@ -56,7 +56,7 @@ class FlowDeployModel
     meshbluHttp.message msg, (error) =>
       callback error
 
-  sendMessage: (flow, topic, callback=->) =>
+  useContainer: (flow, topic, callback=->) =>
     container = new Container uuid: flow.uuid, token: flow.token, image: 'octoblu/flow-runner:latest'
     container[topic]? callback
 
@@ -66,7 +66,7 @@ class FlowDeployModel
       return callback error if error?
 
       @sendFlowMessage flow, 'flow:pause', {}, (error) =>
-        debug '->pause @sendMessage', error
+        debug '->pause @useContainer', error
         callback error
 
   resume: (callback=->) =>
@@ -75,7 +75,7 @@ class FlowDeployModel
       return callback error if error?
 
       @sendFlowMessage flow, 'flow:resume', {}, (error) =>
-        debug '->resume @sendMessage', error
+        debug '->resume @useContainer', error
         callback error
 
   save: (id, callback=->) =>
@@ -84,7 +84,7 @@ class FlowDeployModel
       return callback error if error?
 
       @sendFlowMessage flow, 'flow:save', stateId: id, (error) =>
-        debug '->save @sendMessage', error
+        debug '->save @useContainer', error
 
         @didSave id, callback
 
@@ -94,7 +94,7 @@ class FlowDeployModel
       return callback error if error?
 
       @sendFlowMessage flow, 'flow:save-pause', stateId: id, (error) =>
-        debug '->savePause @sendMessage', error
+        debug '->savePause @useContainer', error
 
         @didSave id, callback
 
@@ -114,8 +114,8 @@ class FlowDeployModel
           debug '->start @clearState', error
           return callback error if error?
 
-          @sendMessage flow, 'create', (error) =>
-            debug '->start @sendMessage', error
+          @useContainer flow, 'create', (error) =>
+            debug '->start @useContainer', error
             callback error
 
   stop: (callback=->) =>
@@ -123,7 +123,7 @@ class FlowDeployModel
     meshbluHttp.update @flowId, stopping: true
     @find @flowId, (error, flow) =>
       return callback error if error?
-      @sendMessage flow, 'delete', (error) =>
+      @useContainer flow, 'delete', (error) =>
         _.delay =>
           meshbluHttp.update @flowId, stopping: false
         , 10000
