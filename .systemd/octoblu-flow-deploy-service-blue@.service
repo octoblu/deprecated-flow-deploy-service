@@ -1,0 +1,37 @@
+[Unit]
+Description=octoblu-flow-deploy-service-blue
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=300
+Restart=always
+ExecStartPre=/bin/sh -c '/usr/bin/docker login \
+  --username $(/usr/bin/etcdctl get /docker/quay.io/username) \
+  --password $(/usr/bin/etcdctl get /docker/quay.io/password) \
+  --email $(/usr/bin/etcdctl get /docker/quay.io/email) \
+  quay.io'
+ExecStartPre=/usr/bin/etcdctl get /meshblu/host || /usr/bin/echo "etcd did not contain /meshblu/host" && exit 1
+ExecStartPre=/usr/bin/etcdctl get /meshblu/port || /usr/bin/echo "etcd did not contain /meshblu/port" && exit 1
+ExecStartPre=/usr/bin/etcdctl get /octoblu/flow-deploy-service/blue/port || /usr/bin/echo "etcd did not contain /octoblu/flow-deploy-service/blue/port" && exit 1
+ExecStartPre=/usr/bin/etcdctl get /octoblu/flow-deploy-service/blue/docker_url || /usr/bin/echo "etcd did not contain /octoblu/flow-deploy-service/blue/docker_url" && exit 1
+ExecStartPre=-/usr/bin/docker rm octoblu-flow-deploy-service-blue-%i
+ExecStart=/bin/sh -c "/usr/bin/docker run --rm \
+  --name octoblu-flow-deploy-service-blue-%i \
+  -e DEBUG=flow-deploy-service* \
+  -e MESHBLU_HOST=$(/usr/bin/etcdctl get /meshblu/host) \
+  -e MESHBLU_PORT=$(/usr/bin/etcdctl get /meshblu/port) \
+  -e MESHBLU_PROTOCOL=$(/usr/bin/etcdctl get /meshblu/protocol) \
+  -e FLOW_DEPLOY_SERVICE_UUID=$(/octoblu/flow-deploy-service/env/FLOW_DEPLOY_SERVICE_UUID) \
+  -e FLOW_DEPLOY_SERVICE_TOKEN=$(/octoblu/flow-deploy-service/env/FLOW_DEPLOY_SERVICE_TOKEN) \
+  -e FLEETCTL_ENDPOINT=http://$(ifconfig docker0 | grep 'inet ' | awk '{print $2}'):2379 \
+  -p $(/usr/bin/etcdctl get /octoblu/flow-deploy-service/blue/port):80 \
+  $(/usr/bin/etcdctl get /octoblu/flow-deploy-service/blue/docker_url) \
+"
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]
+Conflicts=octoblu-flow-deploy-service-blue@*.service
+MachineMetadata=Services=true
