@@ -15,6 +15,7 @@ ExecStartPre=/usr/bin/etcdctl get /meshblu/host || /usr/bin/echo "etcd did not c
 ExecStartPre=/usr/bin/etcdctl get /meshblu/port || /usr/bin/echo "etcd did not contain /meshblu/port" && exit 1
 ExecStartPre=/usr/bin/etcdctl get /octoblu/flow-deploy-service/green/port || /usr/bin/echo "etcd did not contain /octoblu/flow-deploy-service/green/port" && exit 1
 ExecStartPre=/usr/bin/etcdctl get /octoblu/flow-deploy-service/green/docker_url || /usr/bin/echo "etcd did not contain /octoblu/flow-deploy-service/green/docker_url" && exit 1
+ExecStartPre=-/usr/bin/docker kill octoblu-flow-deploy-service-green-%i
 ExecStartPre=-/usr/bin/docker rm octoblu-flow-deploy-service-green-%i
 ExecStart=/bin/sh -c "/usr/bin/docker run --rm \
   --name octoblu-flow-deploy-service-green-%i \
@@ -28,6 +29,7 @@ ExecStart=/bin/sh -c "/usr/bin/docker run --rm \
   -p $(/usr/bin/etcdctl get /octoblu/flow-deploy-service/green/port):80 \
   $(/usr/bin/etcdctl get /octoblu/flow-deploy-service/green/docker_url) \
 "
+ExecStop=/usr/bin/docker stop octoblu-flow-deploy-service-green-%i
 
 [Install]
 WantedBy=multi-user.target

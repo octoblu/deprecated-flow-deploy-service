@@ -27,7 +27,8 @@ ExecStop=/bin/sh -c '/usr/bin/echo "Saving state" && \
     -e MESHBLU_PORT=$(/usr/bin/etcdctl get /meshblu/port) \
     -e MESHBLU_UUID=<%= @uuid %> \
     -e MESHBLU_TOKEN=<%= @token %> \
-  octoblu/flow-util:entrypoint savepause'
+  octoblu/flow-util:entrypoint savepause && \
+  /usr/bin/docker kill octo-<%= @uuid %>'
 
 [X-Fleet]
 MachineMetadata=Role=octo-runner
