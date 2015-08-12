@@ -6,7 +6,7 @@ Requires=docker.service
 [Service]
 KillSignal=SIGINT
 TimeoutStartSec=300
-TimeoutStopSec=300
+TimeoutStopSec=10
 ExecStartPre=-/usr/bin/docker kill octo-<%= @uuid %>
 ExecStartPre=-/usr/bin/docker rm octo-<%= @uuid %>
 ExecStart=/bin/sh -c '/usr/bin/docker run \
