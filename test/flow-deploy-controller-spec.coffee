@@ -21,6 +21,7 @@ describe 'FlowDeployController', ->
         @response.status = sinon.stub().returns @response
         @response.json = sinon.spy => done()
         request =
+          get: ->
           params:
             flowId: 12345
 
@@ -39,6 +40,7 @@ describe 'FlowDeployController', ->
         @response.status = sinon.stub().returns @response
         @response.send = sinon.spy => done()
         request =
+          get: ->
           params:
             flowId: 12345
 
@@ -54,6 +56,7 @@ describe 'FlowDeployController', ->
         @response.status = sinon.stub().returns @response
         @response.end = sinon.spy => done()
         request =
+          get: ->
           params:
             flowId: 12345
 
@@ -70,6 +73,7 @@ describe 'FlowDeployController', ->
         @response.status = sinon.stub().returns @response
         @response.json = sinon.spy => done()
         request =
+          get: ->
           params:
             flowId: 12345
 
@@ -88,6 +92,7 @@ describe 'FlowDeployController', ->
         @response.status = sinon.stub().returns @response
         @response.send = sinon.spy => done()
         request =
+          get: ->
           params:
             flowId: 12345
 
@@ -103,6 +108,7 @@ describe 'FlowDeployController', ->
         @response.status = sinon.stub().returns @response
         @response.end = sinon.spy => done()
         request =
+          get: ->
           params:
             flowId: 12345
 

@@ -16,7 +16,12 @@ describe 'FlowDeployModel', ->
 
     @dependencies = MeshbluHttp: MeshbluHttp, TIMEOUT: 1000, WAIT: 100
 
-    @sut = new FlowDeployModel @flowId, {}, {}, @dependencies
+    options =
+      flowId: @flowId
+      userMeshbluConfig: {}
+      serviceMeshbluConfig: {}
+
+    @sut = new FlowDeployModel options, @dependencies
 
   describe '->constructor', ->
     it 'should exist', ->
@@ -116,7 +121,7 @@ describe 'FlowDeployModel', ->
   describe '->start', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234', {}, {}, @dependencies
+        @sut = new FlowDeployModel flowId: '1234', userMeshbluConfig: {}, @dependencies
         @sut.find = sinon.stub().yields new Error
         @sut.sendFlowMessage = sinon.spy()
         @sut.start (@error) => done()
@@ -126,7 +131,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when find, resetToken, clearState, and useContainer succeed', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234', {}, {}, @dependencies
+        @sut = new FlowDeployModel flowId: '1234', userMeshbluConfig: {}, @dependencies
         @sut.find = sinon.stub().yields null, {}
         @sut.resetToken = sinon.stub().yields null, 'token'
         @sut.clearState = sinon.stub().yields null
@@ -151,7 +156,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when clearState yields an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234', {}, {}, @dependencies
+        @sut = new FlowDeployModel flowId: '1234', userMeshbluConfig: {}, @dependencies
         @sut.find = sinon.stub().yields null, {}
         @sut.resetToken = sinon.stub().yields null, 'token'
         @sut.clearState = sinon.stub().yields new Error('state is still opaque')
@@ -166,7 +171,7 @@ describe 'FlowDeployModel', ->
   describe '->stop', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel null, null, null, @dependencies
+        @sut = new FlowDeployModel {}, @dependencies
         @sut.find = sinon.stub().yields new Error
         @sut.sendFlowMessage = sinon.spy()
         @sut.stop (@error) => done()
@@ -176,7 +181,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234', null, null, @dependencies
+        @sut = new FlowDeployModel flowId: '1234', @dependencies
         @sut.find = sinon.stub().yields null, {}
         @sut.useContainer = sinon.stub().yields null
         @sut.sendFlowMessage = sinon.spy()
@@ -203,7 +208,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234'
+        @sut = new FlowDeployModel flowId: '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
         @sut.pause (@error) => done()
@@ -229,7 +234,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234'
+        @sut = new FlowDeployModel flowId: '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
         @sut.resume (@error) => done()
@@ -294,7 +299,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234'
+        @sut = new FlowDeployModel flowId: '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
         @sut.didSave = sinon.stub().yields null
@@ -322,7 +327,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel '1234'
+        @sut = new FlowDeployModel flowId: '1234'
         @sut.find = sinon.stub().yields null, {}
         @sut.sendFlowMessage = sinon.stub().yields null
         @sut.didSave = sinon.stub().yields null

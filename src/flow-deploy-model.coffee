@@ -2,9 +2,11 @@ _       = require 'lodash'
 request = require 'request'
 debug   = require('debug')('flow-deploy-service:flow-deploy-model')
 Container = require './container'
+FlowStatusMessenger = require './flow-status-messenger'
 
 class FlowDeployModel
-  constructor: (@flowId, @userMeshbluConfig, @serviceMeshbluConfig, dependencies={}) ->
+  constructor: (options={}, dependencies={}) ->
+    {@flowId, @userMeshbluConfig, @serviceMeshbluConfig, @deploymentUuid} = options
     @MeshbluHttp = dependencies.MeshbluHttp ? require 'meshblu-http'
     @async = dependencies.async ? require 'async'
     @TIMEOUT = dependencies.TIMEOUT ? 60 * 1000
@@ -101,6 +103,15 @@ class FlowDeployModel
   start: (callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     meshbluHttp.update @flowId, deploying: true
+
+    flowStatusMessenger = new FlowStatusMessenger meshbluHttp,
+      userUuid: @userMeshbluConfig.uuid
+      flowUuid: @flowId
+      deploymentUuid: @deploymentUuid
+      workflow: 'flow-start'
+
+    flowStatusMessenger.message 'begin'
+
     @find @flowId, (error, flow) =>
       debug '->start @find', error
       return callback error if error?
@@ -116,7 +127,12 @@ class FlowDeployModel
 
           @useContainer flow, 'create', (error) =>
             debug '->start @useContainer', error
-            callback error
+            if error?
+              flowStatusMessenger.message 'error', error.message
+              return callback error
+
+            flowStatusMessenger.message 'end'
+            callback null
 
   stop: (callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
