@@ -171,7 +171,7 @@ describe 'FlowDeployModel', ->
   describe '->stop', ->
     describe 'when find returns an error', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel {}, @dependencies
+        @sut = new FlowDeployModel userMeshbluConfig: {}, @dependencies
         @sut.find = sinon.stub().yields new Error
         @sut.sendFlowMessage = sinon.spy()
         @sut.stop (@error) => done()
@@ -181,7 +181,7 @@ describe 'FlowDeployModel', ->
 
     describe 'when find succeeds', ->
       beforeEach (done) ->
-        @sut = new FlowDeployModel flowId: '1234', @dependencies
+        @sut = new FlowDeployModel flowId: '1234', userMeshbluConfig: {}, @dependencies
         @sut.find = sinon.stub().yields null, {}
         @sut.useContainer = sinon.stub().yields null
         @sut.sendFlowMessage = sinon.spy()
