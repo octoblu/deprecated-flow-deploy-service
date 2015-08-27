@@ -59,7 +59,12 @@ class FlowDeployModel
       callback error
 
   useContainer: (flow, topic, callback=->) =>
-    container = new Container uuid: flow.uuid, token: flow.token, image: 'octoblu/flow-runner:latest'
+    container = new Container
+      uuid: flow.uuid
+      token: flow.token
+      deploymentUuid: @deploymentUuid
+      image: 'octoblu/flow-runner:latest'
+
     container[topic]? callback
 
   pause: (callback=->) =>
@@ -112,37 +117,60 @@ class FlowDeployModel
 
     flowStatusMessenger.message 'begin'
 
+    @_start (error) =>
+      if error?
+        flowStatusMessenger.message 'error', error.message
+        return callback error
+
+      flowStatusMessenger.message 'end'
+      callback null
+
+  _start: (callback=->) =>
     @find @flowId, (error, flow) =>
-      debug '->start @find', error
+      debug '->_start @find', error
       return callback error if error?
 
       @resetToken @flowId, (error, token) =>
-        debug '->start @resetToken', error
+        debug '->_start @resetToken', error
         return callback error if error?
         flow.token = token
 
         @clearState @flowId, (error) =>
-          debug '->start @clearState', error
+          debug '->_start @clearState', error
           return callback error if error?
 
           @useContainer flow, 'create', (error) =>
-            debug '->start @useContainer', error
-            if error?
-              flowStatusMessenger.message 'error', error.message
-              return callback error
-
-            flowStatusMessenger.message 'end'
-            callback null
+            debug '->_start @useContainer', error
+            callback error
 
   stop: (callback=->) =>
     meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     meshbluHttp.update @flowId, stopping: true
+
+    flowStatusMessenger = new FlowStatusMessenger meshbluHttp,
+      userUuid: @userMeshbluConfig.uuid
+      flowUuid: @flowId
+      deploymentUuid: @deploymentUuid
+      workflow: 'flow-stop'
+
+    flowStatusMessenger.message 'begin'
+
+    @_stop (error) =>
+      _.delay =>
+        meshbluHttp.update @flowId, stopping: false
+      , 10000
+
+      if error?
+        flowStatusMessenger.message 'error', error.message
+        return callback error
+
+      flowStatusMessenger.message 'end'
+      callback null
+
+  _stop: (callback=->) =>
     @find @flowId, (error, flow) =>
       return callback error if error?
       @useContainer flow, 'delete', (error) =>
-        _.delay =>
-          meshbluHttp.update @flowId, stopping: false
-        , 10000
         callback error
 
 module.exports = FlowDeployModel

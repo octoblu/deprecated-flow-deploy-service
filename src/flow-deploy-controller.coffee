@@ -63,7 +63,7 @@ class FlowDeployController
 
   start: (request, response) =>
     {flowId} = request.params
-    deploymentUuid = request.get 'deploymentUuid'
+    deploymentUuid = request.get('deploymentUuid') ? 'unset'
     meshbluConfig = _.defaults {}, request.meshbluAuth, @meshbluOptions
 
     @flowDeployModel = new @FlowDeployModel
@@ -80,12 +80,15 @@ class FlowDeployController
 
   stop: (request, response) =>
     {flowId} = request.params
+    debugger
+    deploymentUuid = request.get('deploymentUuid') ? 'unset'
     meshbluConfig = _.defaults {}, request.meshbluAuth, @meshbluOptions
 
     @flowDeployModel = new @FlowDeployModel
       flowId: flowId
       userMeshbluConfig: meshbluConfig
       serviceMeshbluConfig: @meshbluOptions
+      deploymentUuid: deploymentUuid
 
     @flowDeployModel.stop (error) ->
       return response.status(401).json(error: 'unauthorized') if error?.message == 'unauthorized'
