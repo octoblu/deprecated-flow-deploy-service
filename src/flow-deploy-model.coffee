@@ -11,20 +11,19 @@ class FlowDeployModel
     @async = dependencies.async ? require 'async'
     @TIMEOUT = dependencies.TIMEOUT ? 60 * 1000
     @WAIT = dependencies.WAIT ? 2000
+    @meshbluHttp = new @MeshbluHttp @userMeshbluConfig
 
   clearState: (uuid, callback=->) =>
-    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
-    meshbluHttp.update uuid, states: null, callback
+    @meshbluHttp.update uuid, states: null, callback
 
   didSave: (id, callback=->) =>
     debug 'didSave', id
-    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     timeLimit = _.now() + @TIMEOUT
     wait = 0
     @async.doUntil (next) =>
       return next new Error 'Save Timeout' if _.now() > timeLimit
       setTimeout =>
-        meshbluHttp.device @flowId, next
+        @meshbluHttp.device @flowId, next
       , wait
       debug 'doUntil loop wait', wait
       wait = @WAIT
@@ -35,18 +34,16 @@ class FlowDeployModel
       callback error
 
   find: (flowId, callback=->) =>
-    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
-    meshbluHttp.device flowId, (error, device) =>
+    @meshbluHttp.device flowId, (error, device) =>
       return callback error if error?
       callback null, device
 
   resetToken: (flowId, callback=->) =>
-    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
-    meshbluHttp.resetToken flowId, (error, result) =>
-      callback error, result?.token
+    @meshbluHttp.resetToken flowId, (error, result) =>
+      return callback error if error?
+      callback null, result?.token
 
   sendFlowMessage: (flow, topic, payload, callback=->) =>
-    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
     msg =
       devices: [flow.uuid]
       topic: topic
@@ -55,8 +52,7 @@ class FlowDeployModel
 
     msg.payload = payload
 
-    meshbluHttp.message msg, (error) =>
-      callback error
+    @meshbluHttp.message msg, callback
 
   useContainer: (flow, topic, callback=->) =>
     container = new Container
@@ -106,10 +102,9 @@ class FlowDeployModel
         @didSave id, callback
 
   start: (callback=->) =>
-    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
-    meshbluHttp.update @flowId, deploying: true
+    @meshbluHttp.update @flowId, deploying: true
 
-    flowStatusMessenger = new FlowStatusMessenger meshbluHttp,
+    flowStatusMessenger = new FlowStatusMessenger @meshbluHttp,
       userUuid: @userMeshbluConfig.uuid
       flowUuid: @flowId
       deploymentUuid: @deploymentUuid
@@ -144,10 +139,9 @@ class FlowDeployModel
             callback error
 
   stop: (callback=->) =>
-    meshbluHttp = new @MeshbluHttp @userMeshbluConfig
-    meshbluHttp.update @flowId, stopping: true
+    @meshbluHttp.update @flowId, stopping: true
 
-    flowStatusMessenger = new FlowStatusMessenger meshbluHttp,
+    flowStatusMessenger = new FlowStatusMessenger @meshbluHttp,
       userUuid: @userMeshbluConfig.uuid
       flowUuid: @flowId
       deploymentUuid: @deploymentUuid
@@ -157,7 +151,7 @@ class FlowDeployModel
 
     @_stop (error) =>
       _.delay =>
-        meshbluHttp.update @flowId, stopping: false
+        @meshbluHttp.update @flowId, stopping: false
       , 10000
 
       if error?
