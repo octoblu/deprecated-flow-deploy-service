@@ -63,7 +63,7 @@ class FlowDeployController
 
   start: (request, response) =>
     {flowId} = request.params
-    deploymentUuid = request.get('deploymentUuid') ? 'unset'
+    deploymentUuid = request.get('deploymentUuid') ? 'idk'
     meshbluConfig = _.defaults {}, request.meshbluAuth, @meshbluOptions
 
     @flowDeployModel = new @FlowDeployModel
@@ -81,7 +81,7 @@ class FlowDeployController
   stop: (request, response) =>
     {flowId} = request.params
     debugger
-    deploymentUuid = request.get('deploymentUuid') ? 'unset'
+    deploymentUuid = request.get('deploymentUuid') ? 'idk'
     meshbluConfig = _.defaults {}, request.meshbluAuth, @meshbluOptions
 
     @flowDeployModel = new @FlowDeployModel
