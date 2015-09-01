@@ -80,7 +80,6 @@ class FlowDeployController
 
   stop: (request, response) =>
     {flowId} = request.params
-    debugger
     deploymentUuid = request.get('deploymentUuid') ? 'idk'
     meshbluConfig = _.defaults {}, request.meshbluAuth, @meshbluOptions
 
