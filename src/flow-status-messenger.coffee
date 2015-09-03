@@ -1,11 +1,11 @@
 class FlowStatusMessenger
   constructor: (meshbluHttp, options={}) ->
     @meshbluHttp = meshbluHttp
-    {@userUuid, @flowUuid, @workflow, @deploymentUuid} = options
+    {@userUuid, @flowUuid, @workflow, @deploymentUuid, @flowLoggerUuid} = options
 
   message: (state,message) =>
     @meshbluHttp.message
-      devices: [process.env.FLOW_LOGGER_UUID]
+      devices: [@flowLoggerUuid]
       payload:
         application: 'flow-deploy-service'
         deploymentUuid: @deploymentUuid

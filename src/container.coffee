@@ -4,7 +4,7 @@ debug = require('debug')('flow-deploy-service:container')
 
 class Container
   constructor: (options={}, dependencies={}) ->
-    {@uuid,@token,@deploymentUuid,@image} = options
+    {@uuid,@token,@deploymentUuid,@image,@flowLoggerUuid} = options
 
   create: (callback=->) =>
     debug 'create'
@@ -12,7 +12,13 @@ class Container
       debug 'deleted'
       @waitForDeath =>
         debug 'dead'
-        serviceFile = new ServiceFile uuid: @uuid, token: @token, deploymentUuid: @deploymentUuid, image: @image
+        serviceFile = new ServiceFile
+          uuid: @uuid
+          token: @token
+          image: @image
+          deploymentUuid: @deploymentUuid
+          flowLoggerUuid: @flowLoggerUuid
+
         debug 'opening'
         serviceFile.open (error, filePath) =>
           return callback error if error?

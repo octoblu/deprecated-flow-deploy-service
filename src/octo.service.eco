@@ -11,6 +11,7 @@ ExecStartPre=-/usr/bin/docker kill octo-<%= @uuid %>
 ExecStartPre=-/usr/bin/docker rm octo-<%= @uuid %>
 ExecStart=/bin/sh -c '/usr/bin/docker run \
   --name octo-<%= @uuid %> \
+  --rm \
   --memory=200m \
   --env MESHBLU_SERVER=$(/usr/bin/etcdctl get /meshblu/host) \
   --env MESHBLU_PORT=$(/usr/bin/etcdctl get /meshblu/port) \
@@ -20,9 +21,10 @@ ExecStart=/bin/sh -c '/usr/bin/docker run \
   --env DEPLOYMENT_UUID=<%= @deploymentUuid %> \
   --env OCTOBLU_URI=$(/usr/bin/etcdctl get /octoblu/uri) \
   --env NODE_ENV=$(/usr/bin/etcdctl get /node/env) \
+  --env FLOW_LOGGER_UUID=<%= @flowLoggerUuid %> \
   --env DEBUG=$(/usr/bin/etcdctl get /octoblu/flow-runner/env/DEBUG) \
   <%= @image %>'
-ExecStop=/bin/sh -c '/usr/bin/echo "Saving state" && \
+ExecStop=-/bin/sh -c '/usr/bin/echo "Saving state" && \
   /usr/bin/docker run \
     --rm \
     --memory=200m \
@@ -32,8 +34,10 @@ ExecStop=/bin/sh -c '/usr/bin/echo "Saving state" && \
     --env MESHBLU_UUID=<%= @uuid %> \
     --env MESHBLU_TOKEN=<%= @token %> \
     --env DEBUG=$(/usr/bin/etcdctl get /octoblu/flow-runner/env/DEBUG) \
-  octoblu/flow-util:entrypoint savepause && \
-  /usr/bin/docker kill octo-<%= @uuid %>'
+    --env FLOW_UTIL_TIMEOUT=9000 \
+  octoblu/flow-util:entrypoint savepause \
+  '
+ExecStop=/usr/bin/docker kill octo-<%= @uuid %>
 
 [X-Fleet]
 MachineMetadata=Role=octo-runner

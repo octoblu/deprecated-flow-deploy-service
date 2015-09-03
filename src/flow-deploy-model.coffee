@@ -11,6 +11,7 @@ class FlowDeployModel
     @async = dependencies.async ? require 'async'
     @TIMEOUT = dependencies.TIMEOUT ? 60 * 1000
     @WAIT = dependencies.WAIT ? 2000
+    @flowLoggerUuid = process.env.FLOW_LOGGER_UUID ? 'idk-flow-deploy-service'
     @meshbluHttp = new @MeshbluHttp @userMeshbluConfig
 
   clearState: (uuid, callback=->) =>
@@ -60,6 +61,7 @@ class FlowDeployModel
       token: flow.token
       deploymentUuid: @deploymentUuid
       image: 'octoblu/flow-runner:latest'
+      flowLoggerUuid: @flowLoggerUuid
 
     container[topic]? callback
 
@@ -109,6 +111,7 @@ class FlowDeployModel
       flowUuid: @flowId
       deploymentUuid: @deploymentUuid
       workflow: 'flow-start'
+      flowLoggerUuid: @flowLoggerUuid
 
     flowStatusMessenger.message 'begin'
 
