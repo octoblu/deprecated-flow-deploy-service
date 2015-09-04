@@ -62,6 +62,7 @@ class FlowDeployModel
       deploymentUuid: @deploymentUuid
       image: 'octoblu/flow-runner:latest'
       flowLoggerUuid: @flowLoggerUuid
+      userMeshbluConfig: @userMeshbluConfig
 
     container[topic]? callback
 
