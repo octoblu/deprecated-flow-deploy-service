@@ -2,6 +2,7 @@
 ServiceFile = require './service-file'
 debug = require('debug')('flow-deploy-service:container')
 FlowStatusMessenger = require './flow-status-messenger'
+_ = require 'lodash'
 
 class Container
   constructor: (options={}, dependencies={}) ->
@@ -9,7 +10,20 @@ class Container
     @MeshbluHttp = dependencies.MeshbluHttp ? require 'meshblu-http'
     @meshbluHttp = new @MeshbluHttp @userMeshbluConfig
 
+  isRunning: (callback=->) =>
+    exec "fleetctl status \"octo-#{@uuid}.service\"", (error, stdout, stderr) =>
+      return callback null, false if _.isEmpty stdout
 
+      isRunning = "(running)" == @parseFleetctlStatus stdout
+      callback null, isRunning
+
+  parseFleetctlStatus: (str) =>
+    # ● octo-fb58d25f-c66c-438d-8d8b-8e96257889f1.service - Octo Instance
+    #    Loaded: loaded (/run/fleet/units/octo-fb58d25f-c66c-438d-8d8b-8e96257889f1.service; linked-runtime; vendor preset: disabled)
+    #    Active: active (running) since Sun 2015-09-06 01:44:37 UTC; 4s ago
+    # ...
+    statusLine = str.split('\n')[2]
+    statusLine.split(/ +/)[3]
 
   create: (callback=->) =>
     flowStatusMessenger = new FlowStatusMessenger @meshbluHttp,
@@ -29,7 +43,6 @@ class Container
         uuid: @uuid
         token: @token
         image: @image
-        deploymentUuid: @deploymentUuid
         flowLoggerUuid: @flowLoggerUuid
 
       debug 'opening'
