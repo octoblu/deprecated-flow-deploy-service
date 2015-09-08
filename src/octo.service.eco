@@ -22,6 +22,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run \
   --env OCTOBLU_URI=$(/usr/bin/etcdctl get /octoblu/uri) \
   --env NODE_ENV=$(/usr/bin/etcdctl get /node/env) \
   --env FLOW_LOGGER_UUID=<%= @flowLoggerUuid %> \
+  --env CONFIG_RESTART_KEY=deploymentUuid \
   --env DEBUG=$(/usr/bin/etcdctl get /octoblu/flow-runner/env/DEBUG) \
   <%= @image %>'
 ExecStop=-/bin/sh -c '/usr/bin/echo "Saving state" && \
