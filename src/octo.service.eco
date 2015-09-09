@@ -15,6 +15,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run \
   --memory=200m \
   --env MESHBLU_SERVER=$(/usr/bin/etcdctl get /meshblu/host) \
   --env MESHBLU_PORT=$(/usr/bin/etcdctl get /meshblu/port) \
+  --env MESHBLU_PROTOCOL=$(/usr/bin/etcdctl get /meshblu/protocol) \
   --env AIRBRAKE_KEY=$(/usr/bin/etcdctl get /airbrake/key) \
   --env MESHBLU_UUID=<%= @uuid %> \
   --env MESHBLU_TOKEN=<%= @token %> \
