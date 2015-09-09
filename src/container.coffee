@@ -14,12 +14,21 @@ class Container
   isRunning: (callback=->) =>
     url = "#{process.env.FLEETCTL_ENDPOINT}/v2/keys/_coreos.com/fleet/states/octo-#{@uuid}.service"
     request.get url, json: true, (error, response, body) =>
+      if error?
+        console.error error.message
+        return callback null, false
+
       isRunning = "running" == @parseFleetctlStatus body
       callback null, isRunning
 
   parseFleetctlStatus: (body) =>
-    node = JSON.parse _.first(body.node.nodes).value
-    node.subState
+    try
+      nodeJSON = _.first(body.node.nodes).value
+      node = JSON.parse nodeJSON
+      node?.subState
+    catch error
+      console.error error.message
+      return null
 
   create: (callback=->) =>
     flowStatusMessenger = new FlowStatusMessenger @meshbluHttp,
