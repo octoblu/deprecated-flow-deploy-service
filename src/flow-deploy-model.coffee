@@ -60,7 +60,7 @@ class FlowDeployModel
       uuid: flow.uuid
       token: flow.token
       deploymentUuid: @deploymentUuid
-      image: 'octoblu/flow-runner:latest'
+      image: 'quay.io/octoblu/flow-runner:latest'
       flowLoggerUuid: @flowLoggerUuid
       userMeshbluConfig: @userMeshbluConfig
 
