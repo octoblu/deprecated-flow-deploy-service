@@ -15,14 +15,13 @@ ExecStart=/bin/sh -c '/usr/bin/docker run \
   --memory=200m \
   --env MESHBLU_SERVER=$(/usr/bin/etcdctl get /meshblu/host) \
   --env MESHBLU_PORT=$(/usr/bin/etcdctl get /meshblu/port) \
-  --env MESHBLU_PROTOCOL=$(/usr/bin/etcdctl get /meshblu/protocol) \
   --env AIRBRAKE_KEY=$(/usr/bin/etcdctl get /airbrake/key) \
   --env MESHBLU_UUID=<%= @uuid %> \
   --env MESHBLU_TOKEN=<%= @token %> \
+  --env DEPLOYMENT_UUID=<%= @deploymentUuid %> \
   --env OCTOBLU_URI=$(/usr/bin/etcdctl get /octoblu/uri) \
   --env NODE_ENV=$(/usr/bin/etcdctl get /node/env) \
   --env FLOW_LOGGER_UUID=<%= @flowLoggerUuid %> \
-  --env CONFIG_RESTART_KEY=deploymentUuid \
   --env DEBUG=$(/usr/bin/etcdctl get /octoblu/flow-runner/env/DEBUG) \
   <%= @image %>'
 ExecStop=-/bin/sh -c '/usr/bin/echo "Saving state" && \

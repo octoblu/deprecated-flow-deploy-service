@@ -9,7 +9,7 @@ SERVICE_TEMPLATE = eco.compile fs.readFileSync(path.join(__dirname, 'octo.servic
 
 class ServiceFile
   constructor: (options={}) ->
-    {@uuid, @token, @image, @flowLoggerUuid} = options
+    {@uuid, @token, @deploymentUuid, @image, @flowLoggerUuid} = options
     @servicesPath = path.join os.tmpdir(), 'services'
     @filePath = path.join @servicesPath, "octo-#{@uuid}.service"
 
@@ -17,7 +17,7 @@ class ServiceFile
     debug 'open', @servicesPath
     fs.mkdirp @servicesPath, (error) =>
       return callback error if error?
-      data = SERVICE_TEMPLATE uuid: @uuid, token: @token, image: @image, flowLoggerUuid: @flowLoggerUuid
+      data = SERVICE_TEMPLATE uuid: @uuid, token: @token, deploymentUuid: @deploymentUuid, image: @image, flowLoggerUuid: @flowLoggerUuid
       debug 'writing file', @filePath
       fs.writeFile @filePath, data, encoding: 'utf8', (error) =>
         debug 'wrote file', @filePath

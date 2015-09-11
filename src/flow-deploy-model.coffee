@@ -31,7 +31,7 @@ class FlowDeployModel
     , (device) =>
       return device.stateId == id
     , (error) =>
-      debug 'didSave error',error
+      debug 'didSave error', error
       callback error
 
   find: (flowId, callback=->) =>
@@ -54,16 +54,6 @@ class FlowDeployModel
     msg.payload = payload
 
     @meshbluHttp.message msg, callback
-
-  isFlowRunning: (flow, callback=->) =>
-    container = new Container
-      uuid: flow.uuid
-      token: flow.token
-      image: 'octoblu/flow-runner:latest'
-      flowLoggerUuid: @flowLoggerUuid
-      userMeshbluConfig: @userMeshbluConfig
-
-    container.isRunning callback
 
   useContainer: (flow, topic, callback=->) =>
     container = new Container
@@ -139,23 +129,18 @@ class FlowDeployModel
       debug '->_start @find', error
       return callback error if error?
 
-      @isFlowRunning flow, (error, isRunning) =>
-        debug '->_start @isFlowRunning', error, isRunning
+      @resetToken @flowId, (error, token) =>
+        debug '->_start @resetToken', error
         return callback error if error?
-        return callback null if isRunning
+        flow.token = token
 
-        @resetToken @flowId, (error, token) =>
-          debug '->_start @resetToken', error
+        @clearState @flowId, (error) =>
+          debug '->_start @clearState', error
           return callback error if error?
-          flow.token = token
 
-          @clearState @flowId, (error) =>
-            debug '->_start @clearState', error
-            return callback error if error?
-
-            @useContainer flow, 'create', (error) =>
-              debug '->_start @useContainer', error
-              callback error
+          @useContainer flow, 'create', (error) =>
+            debug '->_start @useContainer', error
+            callback error
 
   stop: (callback=->) =>
     @meshbluHttp.update @flowId, stopping: true

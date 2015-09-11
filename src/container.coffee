@@ -2,8 +2,6 @@
 ServiceFile = require './service-file'
 debug = require('debug')('flow-deploy-service:container')
 FlowStatusMessenger = require './flow-status-messenger'
-request = require 'request'
-_ = require 'lodash'
 
 class Container
   constructor: (options={}, dependencies={}) ->
@@ -11,24 +9,7 @@ class Container
     @MeshbluHttp = dependencies.MeshbluHttp ? require 'meshblu-http'
     @meshbluHttp = new @MeshbluHttp @userMeshbluConfig
 
-  isRunning: (callback=->) =>
-    url = "#{process.env.FLEETCTL_ENDPOINT}/v2/keys/_coreos.com/fleet/states/octo-#{@uuid}.service"
-    request.get url, json: true, (error, response, body) =>
-      if error?
-        console.error error.message
-        return callback null, false
 
-      isRunning = "running" == @parseFleetctlStatus body
-      callback null, isRunning
-
-  parseFleetctlStatus: (body) =>
-    try
-      nodeJSON = _.first(body.node.nodes).value
-      node = JSON.parse nodeJSON
-      node?.subState
-    catch error
-      console.error error.message
-      return null
 
   create: (callback=->) =>
     flowStatusMessenger = new FlowStatusMessenger @meshbluHttp,
@@ -48,6 +29,7 @@ class Container
         uuid: @uuid
         token: @token
         image: @image
+        deploymentUuid: @deploymentUuid
         flowLoggerUuid: @flowLoggerUuid
 
       debug 'opening'
