@@ -23,6 +23,7 @@ ExecStart=/bin/sh -c '/usr/bin/docker run \
   --env NODE_ENV=$(/usr/bin/etcdctl get /node/env) \
   --env FLOW_LOGGER_UUID=<%= @flowLoggerUuid %> \
   --env DEBUG=$(/usr/bin/etcdctl get /octoblu/flow-runner/env/DEBUG) \
+  --net host \
   <%= @image %>'
 ExecStop=-/bin/sh -c '/usr/bin/echo "Saving state" && \
   /usr/bin/docker run \
@@ -35,6 +36,7 @@ ExecStop=-/bin/sh -c '/usr/bin/echo "Saving state" && \
     --env MESHBLU_TOKEN=<%= @token %> \
     --env DEBUG=$(/usr/bin/etcdctl get /octoblu/flow-runner/env/DEBUG) \
     --env FLOW_UTIL_TIMEOUT=9000 \
+    --net host \
   octoblu/flow-util:entrypoint savepause \
   '
 ExecStop=/usr/bin/docker kill octo-<%= @uuid %>
