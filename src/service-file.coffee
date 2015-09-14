@@ -21,6 +21,7 @@ class ServiceFile
       debug 'writing file', @filePath
       fs.writeFile @filePath, data, encoding: 'utf8', (error) =>
         debug 'wrote file', @filePath
+        debug 'file:', data
         return callback error if error?
         callback null, @filePath
 

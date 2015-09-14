@@ -36,8 +36,6 @@ class Container
       serviceFile.open (error, filePath) =>
         return callback error if error?
         debug 'exec', "fleetctl start #{filePath}"
-        fs = require 'fs'
-        debug 'file', fs.readFileSync(filePath).toString('utf8')
 
         flowStatusMessenger.message 'container-create-begin'
         exec "fleetctl start \"#{filePath}\"", (error, stdout, stderr) =>
