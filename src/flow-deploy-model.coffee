@@ -105,7 +105,7 @@ class FlowDeployModel
         @didSave id, callback
 
   start: (callback=->) =>
-    @meshbluHttp.update @flowId, deploying: true
+    @meshbluHttp.update @flowId, deploying: true, stopping: false
 
     flowStatusMessenger = new FlowStatusMessenger @meshbluHttp,
       userUuid: @userMeshbluConfig.uuid
@@ -143,7 +143,7 @@ class FlowDeployModel
             callback error
 
   stop: (callback=->) =>
-    @meshbluHttp.update @flowId, stopping: true
+    @meshbluHttp.update @flowId, stopping: true, deploying: false
 
     flowStatusMessenger = new FlowStatusMessenger @meshbluHttp,
       userUuid: @userMeshbluConfig.uuid
@@ -155,7 +155,7 @@ class FlowDeployModel
 
     @_stop (error) =>
       _.delay =>
-        @meshbluHttp.update @flowId, stopping: false
+        @meshbluHttp.update @flowId, stopping: false, deploying: false
       , 10000
 
       if error?
