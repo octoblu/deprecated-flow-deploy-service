@@ -1,6 +1,6 @@
 {
   "name": "flow-deploy-service",
-  "version": "1.8.0",
+  "version": "1.12.0",
   "description": "",
   "main": "server.js",
   "scripts": {
